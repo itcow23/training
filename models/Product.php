@@ -2,7 +2,10 @@
 
 namespace app\models;
 
-use Yii;
+use app\behaviors\SlugBehavior;
+use app\models\query\ProductQuery;
+use Override;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "product".
@@ -27,6 +30,21 @@ use Yii;
 class Product extends \yii\db\ActiveRecord
 {
 
+    public $image;
+
+    #[Override]
+    public function behaviors()
+    {
+       return [
+            SlugBehavior::class,
+            [
+                'class' => TimestampBehavior::class,
+                'value' => function (){
+                   return date('Y-m-d H:i:s');
+                }
+            ]
+       ];
+    }
 
     /**
      * {@inheritdoc}
@@ -52,6 +70,7 @@ class Product extends \yii\db\ActiveRecord
             [['name', 'slug'], 'string', 'max' => 255],
             [['slug'], 'unique'],
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => Category::class, 'targetAttribute' => ['category_id' => 'id']],
+            [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
         ];
     }
 
@@ -122,6 +141,16 @@ class Product extends \yii\db\ActiveRecord
     public function getPostProducts()
     {
         return $this->hasMany(PostProduct::class, ['product_id' => 'id']);
+    }
+
+    public function getMedia()
+    {
+        return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'product']);
+    }
+
+    public static function find()
+    {
+        return new ProductQuery(get_called_class());
     }
 
 }

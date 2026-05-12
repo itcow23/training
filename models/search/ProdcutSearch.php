@@ -4,26 +4,25 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Category;
-use app\models\response\CategoryResponse;
+use app\models\Product;
+use app\models\response\ProductResponse;
 
 /**
- * CategorySearch represents the model behind the search form of `app\models\Category`.
+ * ProdcutSearch represents the model behind the search form of `app\models\Product`.
  */
-class CategorySearch extends Category
+class ProdcutSearch extends Product
 {
     public $key;
-    public $pageSize = 10;
+    public $pageSize = 5;
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['name', 'slug', 'img', 'created_at', 'updated_at'], 'safe'],
-            ['key', 'safe'],
-            [['pageSize'], 'integer']
+            [['id', 'category_id', 'status', 'discount'], 'integer'],
+            [['name', 'description', 'slug', 'created_at', 'updated_at','key'], 'safe'],
+            [['price'], 'number'],
         ];
     }
 
@@ -46,15 +45,14 @@ class CategorySearch extends Category
      */
     public function search($params, $formName = null)
     {
-
-        $query = CategoryResponse::find();
+        $query = ProductResponse::find();
 
         // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-            'pagination' => [
-                'pageSize' => $this->pageSize ?: 1,
+              'pagination' => [
+                'pageSize' => $this->pageSize ?: 5,
                 'pageParam' => 'page',
             ],
 
@@ -76,24 +74,21 @@ class CategorySearch extends Category
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'name' => $this->name,
+            'category_id' => $this->category_id,
+            'price' => $this->price,
+            'status' => $this->status,
+            'discount' => $this->discount,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ]);
 
-       foreach($params as $item){
-            $key = $this->normalizeKeyword($item);
-            $query->orFilterWhere(['like', "REPLACE(name, ' ', '')", $key]);
-       }
+        $query->andFilterWhere(['like', 'name', $this->name])
+            ->andFilterWhere(['like', 'description', $this->description])
+            ->andFilterWhere(['like', 'slug', $this->slug]);
 
-
+        if(!empty($params['key'])){
+            $query->andFilterWhere(['like', 'name', $params['key']]);
+        }
         return $dataProvider;
-    }
-
-    public static function normalizeKeyword($text)
-    {
-        $text = strtolower($text);
-
-        $text = str_replace(' ', '', $text);
-
-        return $text;
     }
 }

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\behaviors\SlugBehavior;
+use app\models\query\CategoryQuery;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -11,7 +12,6 @@ use yii\behaviors\TimestampBehavior;
  * @property int $id
  * @property string $name
  * @property string|null $slug
- * @property string|null $img
  * @property string|null $created_at
  * @property string|null $updated_at
  *
@@ -20,6 +20,7 @@ use yii\behaviors\TimestampBehavior;
 class Category extends \yii\db\ActiveRecord
 {
 
+    public $image;
     /**
      * {@inheritdoc}
      */
@@ -52,12 +53,13 @@ class Category extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['slug', 'img', 'created_at', 'updated_at'], 'default', 'value' => null],
+            [['slug', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['name'], 'required'],
             [['created_at', 'updated_at'], 'safe'],
-            [['name', 'slug', 'img'], 'string', 'max' => 255],
+            [['name', 'slug'], 'string', 'max' => 255],
             [['name'], 'unique'],
             [['slug'], 'unique'],
+            [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
         ];
     }
 
@@ -70,7 +72,7 @@ class Category extends \yii\db\ActiveRecord
             'id' => 'ID',
             'name' => 'Tên danh mục',
             'slug' => 'Slug',
-            'img' => 'Ảnh danh mục',
+            'image' => 'Ảnh danh mục',
             'created_at' => 'Ngày tạo',
             'updated_at' => 'Ngày cập nhật',
         ];
@@ -94,5 +96,10 @@ class Category extends \yii\db\ActiveRecord
     public function getMedia()
     {
         return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'category']);
+    }
+
+    public static function find()
+    {
+        return new CategoryQuery(get_called_class());
     }
 }

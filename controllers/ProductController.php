@@ -2,35 +2,28 @@
 
 namespace app\controllers;
 
-use app\models\response\CategoryResponse;
-use app\models\search\CategorySearch;
+use app\models\Product;
+use app\models\response\ProductResponse;
+use app\models\search\ProdcutSearch;
+use app\services\ProductService;
+use Override;
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use app\services\CategoryService;
-use Yii;
 
 /**
- * CategoryController implements the CRUD actions for Category model.
+ * ProductController implements the CRUD actions for Product model.
  */
-class CategoryController extends Controller
+class ProductController extends Controller
 {
-    public  $enableCsrfValidation = false;
-
-    private CategoryService $categoryService;
-    public function init()
-    {
-        parent::init();
-        $this->categoryService = new CategoryService();
-    }
-
+    public $enableCsrfValidation = false;
     /**
      * @inheritDoc
      */
     public function behaviors()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
         return array_merge(
             parent::behaviors(),
             [
@@ -44,33 +37,33 @@ class CategoryController extends Controller
         );
     }
 
+    private ProductService $productService;
+    #[Override]
+    public function init()
+    {
+        $this->productService = new ProductService();
+        return parent::init();
+    }
 
     /**
-     * Lists all Category models.
+     * Lists all Product models.
      *
      * @return string
      */
     public function actionIndex()
     {
-        $searchModel = new CategorySearch();
+        $searchModel = new ProdcutSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
+        $model = new ProductResponse();
 
+        // return $this->render('index', [
+        //     'searchModel' => $searchModel,
+        //     'dataProvider' => $dataProvider,
+        // ]);
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    public function actionApiIndex()
-    {
-        $params = $this->request->queryParams;
-
-        $model = new CategorySearch();
-        $dataProvider = $model->search($params);
         return [
             'items' => $dataProvider->getModels(),
-
+            'product active' => $model->find()->active()->all(),
             'pagination' => [
                 'total' => $dataProvider->getTotalCount(),
                 'page' => $dataProvider->pagination->page + 1,
@@ -81,59 +74,36 @@ class CategoryController extends Controller
     }
 
     /**
-     * Displays a single Category model.
+     * Displays a single Product model.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
+        // return $this->render('view', [
+        //     'model' => $this->findModel($id),
+        // ]);
 
-    public function actionApiView($id)
-    {
         return [
-            'model'=>$this->findModel($id)
+            'model' => $this->findModel($id),
         ];
     }
 
     /**
-     * Creates a new Category model.
+     * Creates a new Product model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
     public function actionCreate()
     {
-        $model = new CategoryResponse();
+        $model = new ProductResponse();
 
         if ($this->request->isPost) {
-            $result = $this->categoryService->create($model, $this->request->post());
-            if ($result) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-
-            $model->loadDefaultValues();
-        }
-
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionApiCreate()
-    {
-        $model = new CategoryResponse();
-
-        if ($this->request->isPost) {
-            $result = $this->categoryService->create($model, $this->request->post());
+            $result = $this->productService->create($model, $this->request->post());
             if ($result) {
                 return [
-                    'msg' => 'Thêm thành công',
+                    'msg' => 'create sucess',
                     'model' => $model
                 ];
             }
@@ -144,14 +114,12 @@ class CategoryController extends Controller
 
 
         return [
-            'msg' => 'Không có gì được thêm'
+            'msg' => 'create error'
         ];
     }
 
-
-
     /**
-     * Updates an existing Category model.
+     * Updates an existing Product model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
      * @return string|\yii\web\Response
@@ -162,25 +130,7 @@ class CategoryController extends Controller
         $model = $this->findModel($id);
 
         if ($this->request->isPost) {
-            if ($this->categoryService->update($model, $this->request->post())) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        }
-
-        // return [
-        //     'model' => $model,
-        // ];
-        return $this->render('update', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionApiUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($this->request->isPost) {
-            if ($this->categoryService->update($model, $this->request->post())) {
+            if ($this->productService->update($model, $this->request->post())) {
                 return [
                     'msg' => 'Update thành công',
                     'model' => $model
@@ -191,11 +141,10 @@ class CategoryController extends Controller
        return [
             'msg' => 'update error'
         ];
-
     }
 
     /**
-     * Deletes an existing Category model.
+     * Deletes an existing Product model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id ID
      * @return \yii\web\Response
@@ -205,18 +154,7 @@ class CategoryController extends Controller
     {
         $model = $this->findModel($id);
 
-        if (!$this->categoryService->delete($model)) {
-            throw new NotFoundHttpException('Xóa thất bại');
-        }
-
-        return $this->redirect(['index']);
-    }
-
-    public function actionApiDelete($id)
-    {
-        $model = $this->findModel($id);
-
-        if (!$this->categoryService->delete($model)) {
+        if (!$this->productService->delete($model)) {
            return [
                 'msg' => 'Delete error'
            ];
@@ -228,15 +166,15 @@ class CategoryController extends Controller
     }
 
     /**
-     * Finds the Category model based on its primary key value.
+     * Finds the Product model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return CategoryResponse the loaded model
+     * @return Product the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = CategoryResponse::findOne(['id' => $id])) !== null) {
+        if (($model = ProductResponse::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

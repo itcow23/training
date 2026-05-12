@@ -2,42 +2,40 @@
 
 namespace app\services;
 
-use app\models\Category;
+use app\models\Product;
 use RuntimeException;
 use Throwable;
 use Yii;
 use yii\web\UploadedFile;
 use app\services\MediaService;
 
-class CategoryService
+class ProductService
 {
-    private MediaService $mediaService;
+     private MediaService $mediaService;
     private UploadService $uploadService;
     public function __construct()
     {
         $this->mediaService = new MediaService();
         $this->uploadService = new UploadService();
     }
-    public function create(Category $model, array $postData)
+    public function create(Product $model, array $postData)
     {
 
         if (!$model->load($postData)) {
-            dd($postData);
+            dd('load fail');
             return false;
         }
         $uploadedFile = UploadedFile::getInstances($model, 'image');
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
-                throw new RuntimeException('Failed to save category.');
-                //return false;
+                throw new RuntimeException('Failed to save Product.');
             }
             if ($uploadedFile) {
                 foreach ($uploadedFile as $file) {
                     $filePath = $this->uploadService->uploadFile($file, $model->tableName());
                     if (!$filePath) {
                         throw new RuntimeException('Failed to save uploaded file.');
-                        //return false;
                     }
                     $data = [
                         'file_id' => $model->id,
@@ -46,11 +44,9 @@ class CategoryService
                     ];
                     if (!$this->mediaService->saveFile($data)) {
                         throw new RuntimeException('Failed to save media record.');
-                        //return false;
                     }
                 }
             }
-            //dd('upload ok');
             $transaction->commit();
             return true;
         } catch (Throwable $e) {
@@ -60,7 +56,7 @@ class CategoryService
         }
     }
 
-    public function update(Category $model, array $postData): bool
+    public function update(Product $model, array $postData): bool
     {
         if (!$model->load($postData)) {
             return false;
@@ -71,7 +67,7 @@ class CategoryService
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->save()) {
-                throw new RuntimeException('Failed to save category.');
+                throw new RuntimeException('Failed to save Product.');
             }
 
             if (!empty($img_deleted)) {
@@ -111,7 +107,7 @@ class CategoryService
         }
     }
 
-    public function delete(Category $model): bool
+    public function delete(Product $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
@@ -124,7 +120,7 @@ class CategoryService
             }
 
             if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete category.');
+                throw new RuntimeException('Failed to delete Product.');
             }
 
             $transaction->commit();

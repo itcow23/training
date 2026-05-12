@@ -7,7 +7,13 @@ use Yii;
 
 class MediaService
 {
-    public function saveFile( array $data): bool
+
+    public function getMediaById($id)
+    {
+        return Media::findOne($id);
+    }
+
+    public function saveFile(array $data): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {

@@ -2,17 +2,16 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
-use yii\helpers\Url;
 
 /** @var yii\web\View $this */
-/** @var app\models\Category $model */
+/** @var app\models\Product $model */
 
 $this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Categories', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => 'Products', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
 ?>
-<div class="category-view">
+<div class="product-view">
 
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -31,20 +30,13 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'attributes' => [
             'id',
+            'category_id',
             'name',
+            'price',
+            'status',
+            'description:ntext',
+            'discount',
             'slug',
-            'img' => [
-                'label' => 'Ảnh',
-                'format' => 'raw',
-                'value' => function ($model) {
-                    $media = $model->getMedia()->all();
-                    $output = '';
-                    foreach ($media as $item) {
-                        $output .= Html::img(Url::to('@web/' . $item->filepath), ['width' => '80', 'style' => 'margin-right: 10px;']);
-                    }
-                    return $output;
-                },
-            ],
             'created_at',
             'updated_at',
         ],

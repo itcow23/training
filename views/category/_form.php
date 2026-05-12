@@ -16,11 +16,11 @@ use yii\helpers\Url;
     <?= $form->field($model, 'name')->textInput(['maxlength' => true, 'class' => 'form-control']) ?>
 
 
-    <?= $form->field($model, 'img')->fileInput() ?>
+    <?= $form->field($model, 'image[]')->fileInput(['multiple' => true, 'accept' => 'image/*']) ?>
 
-    <?php if ($model->img): ?>
+    <?php if ($model->image && is_array($model->image)): ?>
         <div class="form-group">
-            <?= Html::img(Url::to('@web/' . $model->img), ['width' => '200']) ?>
+            <?= Html::img(Url::to('@web/' . $model->image[0]), ['width' => '200']) ?>
         </div>
     <?php endif; ?>
 

@@ -5,6 +5,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
+use yii\widgets\LinkPager;
 
 /** @var yii\web\View $this */
 /** @var app\models\search\CategorySearch $searchModel */
@@ -21,11 +22,37 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('Create Category', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+    <?php // echo $this->render('_search', ['model' => $searchModel]);
+    ?>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+
+        'pager' => [
+            'class' => \yii\widgets\LinkPager::class,
+
+            'maxButtonCount' => 5,
+
+            'firstPageLabel' => '<<',
+            'lastPageLabel' => '>>',
+
+            'prevPageLabel' => '<',
+            'nextPageLabel' => '>',
+
+            'options' => [
+                'class' => 'pagination justify-content-center',
+            ],
+
+            'linkOptions' => [
+                'class' => 'page-link',
+            ],
+
+            'pageCssClass' => 'page-item',
+            'activePageCssClass' => 'active',
+            'disabledPageCssClass' => 'disabled',
+        ],
+        
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
@@ -36,8 +63,12 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Ảnh',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    $media = $model->getMedia()->one();
-                    return $media ? Html::img(Url::to('@web/' . $media->filepath), ['width' => '100']) : '';
+                    $media = $model->getMedia()->all();
+                    $output = '';
+                    foreach ($media as $item) {
+                        $output .= Html::img(Url::to('@web/' . $item->filepath), ['width' => '50', 'style' => 'margin-right: 10px;']);
+                    }
+                    return $output;
                 },
             ],
             'created_at',
@@ -46,10 +77,9 @@ $this->params['breadcrumbs'][] = $this->title;
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Category $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                }
             ],
         ],
     ]); ?>
-
 
 </div>

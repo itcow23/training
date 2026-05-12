@@ -2,28 +2,31 @@
 
 namespace app\models\response;
 
-use app\models\Category;
+use app\models\Product;
+use Override;
 
-class CategoryResponse extends Category
+class ProductResponse extends Product
 {
+    #[Override]
     public function fields()
     {
-        return [
+        return[
             'id',
             'name',
-            'products' => function ($model) {
-                return $model->products;
-            },
-            'media' => function ($model) {
+            'price',
+            'status',
+            'description',
+            'discount',
+            'media' => function ($model){
                 return array_map(function ($media) {
                     return [
                         'id' => $media->id,
                         'file_id' => $media->file_id,
                         'file_type' => $media->file_type,
-                        'filepath' => $media->filepath,
+                        'path' => $media->filepath
                     ];
-                }, $model->media);
-            },
+                },$model->media);
+            }
         ];
     }
 }
