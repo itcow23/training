@@ -2,7 +2,8 @@
 
 namespace app\models;
 
-use Yii;
+use app\behaviors\SlugBehavior;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "category".
@@ -18,6 +19,23 @@ use Yii;
  */
 class Category extends \yii\db\ActiveRecord
 {
+
+    /**
+     * {@inheritdoc}
+     */
+    public function behaviors()
+    {
+        return [
+            SlugBehavior::class,
+            [
+                'class' => TimestampBehavior::class,
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
+                },
+            ]
+
+        ];
+    }
 
 
     /**
@@ -50,11 +68,11 @@ class Category extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
+            'name' => 'Tên danh mục',
             'slug' => 'Slug',
-            'img' => 'Img',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'img' => 'Ảnh danh mục',
+            'created_at' => 'Ngày tạo',
+            'updated_at' => 'Ngày cập nhật',
         ];
     }
 
@@ -68,4 +86,13 @@ class Category extends \yii\db\ActiveRecord
         return $this->hasMany(Product::class, ['category_id' => 'id']);
     }
 
+    /**
+     * Gets query for [[Media]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMedia()
+    {
+        return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'category']);
+    }
 }

@@ -7,6 +7,7 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'timezone' => 'Asia/Ho_Chi_Minh',
     'container' => [
         'singletons' => [
             \yii\mail\MailerInterface::class => [

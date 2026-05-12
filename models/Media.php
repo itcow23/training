@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use Override;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "media".
@@ -57,4 +59,17 @@ class Media extends \yii\db\ActiveRecord
         ];
     }
 
+    #[Override]
+    public function behaviors()
+    {
+        parent::behaviors();
+        return [
+            [
+                'class' => TimestampBehavior::class,
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
+                },
+            ],
+        ];
+    }
 }

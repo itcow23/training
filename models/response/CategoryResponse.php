@@ -6,20 +6,23 @@ use app\models\Category;
 
 class CategoryResponse extends Category
 {
-   public function fields()
+    public function fields()
     {
         return [
             'id',
             'name',
             'products' => function ($model) {
-                return array_map(function ($product) {
+                return $model->products;
+            },
+            'media' => function ($model) {
+                return array_map(function ($media) {
                     return [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'price' => $product->price,
+                        'file_id' => $media->file_id,
+                        'file_type' => $media->file_type,
+                        'filepath' => $media->filepath,
                     ];
-                }, array_slice($model->products, 0, 1));
+                }, $model->media);
             },
         ];
-   }
+    }
 }
