@@ -4,25 +4,25 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\Product;
-use app\models\response\ProductResponse;
+use app\models\Order;
+use app\models\response\OrderResponse;
 
 /**
- * ProdcutSearch represents the model behind the search form of `app\models\Product`.
+ * OrderSearch represents the model behind the search form of `app\models\Order`.
  */
-class ProdcutSearch extends Product
+class OrderSearch extends Order
 {
     public $key;
-    public $pageSize = 5;
+    public $pageSize = 10;
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['id', 'category_id', 'status', 'discount'], 'integer'],
-            [['name', 'description', 'slug', 'created_at', 'updated_at', 'key'], 'safe'],
-            [['price'], 'number'],
+            [['id', 'name', 'email', 'phone', 'address', 'created_at', 'updated_at'], 'safe'],
+            [['account_id', 'membership_level_id', 'pay', 'status'], 'integer'],
+            [['discount_amount', 'subtotal', 'final_total'], 'number'],
         ];
     }
 
@@ -45,7 +45,7 @@ class ProdcutSearch extends Product
      */
     public function search($params, $formName = null)
     {
-        $query = ProductResponse::find();
+        $query = OrderResponse::find();
 
         // add conditions that should always apply here
 
@@ -53,12 +53,11 @@ class ProdcutSearch extends Product
             'query' => $query,
             'pagination' => [
                 'pageSize' => $this->pageSize ?: 5,
-                'pageParam' => 'page',
+                'pageParam' => 'page'
             ],
-
             'sort' => [
                 'defaultOrder' => [
-                    'id' => SORT_DESC,
+                    'created_at' => 'SORT_DESC'
                 ]
             ]
         ]);
@@ -73,22 +72,27 @@ class ProdcutSearch extends Product
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'category_id' => $this->category_id,
-            'price' => $this->price,
+            'account_id' => $this->account_id,
+            'membership_level_id' => $this->membership_level_id,
+            'discount_amount' => $this->discount_amount,
+            'subtotal' => $this->subtotal,
+            'final_total' => $this->final_total,
+            'pay' => $this->pay,
             'status' => $this->status,
-            'discount' => $this->discount,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'description', $this->description])
-            ->andFilterWhere(['like', 'slug', $this->slug]);
+        $query->andFilterWhere(['like', 'id', $this->id])
+            ->andFilterWhere(['like', 'name', $this->name])
+            ->andFilterWhere(['like', 'email', $this->email])
+            ->andFilterWhere(['like', 'phone', $this->phone])
+            ->andFilterWhere(['like', 'address', $this->address]);
 
-        if (!empty($params['key'])) {
-            $query->andFilterWhere(['like', 'name', $params['key']]);
+        if(!empty($params['key'])){
+            $query->andFilterWhere(['like','name',$params['key']]);
         }
+
         return $dataProvider;
     }
 }

@@ -1,6 +1,3 @@
-<!-- <?php
-// dd($category[0]['category']['name']);
-?> -->
 
 <?php foreach ($data as $item) : ?>
     <h2><?= $item['category']->name ?></h2>

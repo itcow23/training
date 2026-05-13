@@ -11,7 +11,7 @@ use app\services\MediaService;
 
 class ProductService
 {
-     private MediaService $mediaService;
+    private MediaService $mediaService;
     private UploadService $uploadService;
     public function __construct()
     {
@@ -22,7 +22,6 @@ class ProductService
     {
 
         if (!$model->load($postData)) {
-            dd('load fail');
             return false;
         }
         $uploadedFile = UploadedFile::getInstances($model, 'image');

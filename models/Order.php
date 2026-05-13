@@ -2,7 +2,8 @@
 
 namespace app\models;
 
-use Yii;
+use Override;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "order".
@@ -28,6 +29,50 @@ use Yii;
  */
 class Order extends \yii\db\ActiveRecord
 {
+    public const STATUS_PENDING = 1;
+    public const STATUS_CONFIRM = 2;
+    public const STATUS_SHIPPING = 3;
+    public const STATUS_COMPLETED = 4;
+    public const STATUS_CANCEL = 0;
+
+    #[Override]
+    public function behaviors()
+    {
+        return [
+            'timestamp' => [
+                'class' => TimestampBehavior::class,
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
+                }
+            ]
+        ];
+    }
+
+    #[Override]
+    public function beforeSave($insert)
+    {
+        if ($insert) {
+            if (empty($this->id)) {
+
+                $date = date('Ymd');
+                $prefix = '#ORD' . $date;
+
+                $lastOrder = self::find()
+                    ->where(['like', 'id', $prefix . '%', false])
+                    ->orderBy(['id' => SORT_DESC])
+                    ->one();
+
+                if ($lastOrder) {
+                    $lastNum = (int) substr($lastOrder->id, -2);
+                    $newOrd = $lastNum + 1;
+                } else {
+                    $newOrd = 1;
+                }
+                $this->id = $prefix . str_pad($newOrd, 4, '0', STR_PAD_LEFT);
+            }
+        }
+        return parent::beforeSave($insert);
+    }
 
 
     /**
@@ -47,7 +92,7 @@ class Order extends \yii\db\ActiveRecord
             [['membership_level_id', 'subtotal', 'final_total', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['discount_amount'], 'default', 'value' => 0],
             [['status'], 'default', 'value' => 1],
-            [['id', 'account_id', 'name', 'email', 'phone', 'address'], 'required'],
+            [['account_id', 'name', 'email', 'phone', 'address','pay'], 'required'],
             [['account_id', 'membership_level_id', 'pay', 'status'], 'integer'],
             [['phone', 'address'], 'string'],
             [['discount_amount', 'subtotal', 'final_total'], 'number'],
@@ -110,5 +155,4 @@ class Order extends \yii\db\ActiveRecord
     {
         return $this->hasMany(OrderDetail::class, ['order_id' => 'id']);
     }
-
 }

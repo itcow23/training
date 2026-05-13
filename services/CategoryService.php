@@ -22,7 +22,6 @@ class CategoryService
     {
 
         if (!$model->load($postData)) {
-            dd($postData);
             return false;
         }
         $uploadedFile = UploadedFile::getInstances($model, 'image');
@@ -50,7 +49,6 @@ class CategoryService
                     }
                 }
             }
-            //dd('upload ok');
             $transaction->commit();
             return true;
         } catch (Throwable $e) {

@@ -2,7 +2,8 @@
 
 namespace app\models;
 
-use Yii;
+use Override;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "order_detail".
@@ -21,6 +22,19 @@ use Yii;
 class OrderDetail extends \yii\db\ActiveRecord
 {
 
+
+    #[Override]
+    public function behaviors()
+    {
+        return[
+            [
+                'class' => TimestampBehavior::class,
+                'value' => function (){
+                   return date('Y-m-d H:i:s');
+                }
+            ]
+        ];
+    }
 
     /**
      * {@inheritdoc}
