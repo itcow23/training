@@ -4,7 +4,7 @@ namespace app\controllers;
 
 use app\models\Product;
 use app\models\response\ProductResponse;
-use app\models\search\ProdcutSearch;
+use app\models\search\ProductSearch;
 use app\services\ProductService;
 use Override;
 use Yii;
@@ -52,7 +52,7 @@ class ProductController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new ProdcutSearch();
+        $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
         $model = new ProductResponse();
 

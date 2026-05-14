@@ -27,7 +27,9 @@ class OrderService
                 throw new RuntimeException('Failed to load.');
             }
 
-            $subtotal = $this->calculateSubtotal($postData['products']);
+            $result = $this->calculateSubtotal($postData['products']);
+            $subtotal = $result['subtotal'];
+            $productList = $result['productList'];
 
             $discountAmount = $this->calculateDiscount($subtotal, $model->membership_level_id);
 
@@ -43,7 +45,7 @@ class OrderService
                 );
             }
 
-            $this->orderDetailService->create($model->id, $postData['products']);
+            $this->orderDetailService->create($model->id, $productList, $postData['products']);
 
             $transaction->commit();
 
@@ -62,19 +64,26 @@ class OrderService
     {
         $subtotal = 0;
 
+        $productIds = array_column($products,'product_id');
+
+        $productList = Product::find()
+                        ->where(['id' => $productIds])
+                        ->indexBy('id')
+                        ->all();
         foreach ($products as $item) {
 
-            $product = Product::findOne($item['product_id']);
+            $product = $productList[$item['product_id']];
 
             if (!$product) {
                 throw new HttpException(404, 'Product not found');
             }
 
-            $subtotal +=
-                $product->price * $item['quantity'];
+            $subtotal += $product->price * $item['quantity'];
         }
-
-        return $subtotal;
+        return [
+            'subtotal' => $subtotal,
+            'productList' => $productList
+        ];
     }
 
     private function calculateDiscount($subtotal, $membershipLevelId)

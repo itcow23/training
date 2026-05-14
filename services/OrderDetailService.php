@@ -3,19 +3,17 @@
 namespace app\services;
 
 use app\models\OrderDetail;
-use app\models\Product;
 use yii\web\HttpException;
 
 class OrderDetailService
 {
-    public function create($orderId, $products)
+    public function create($orderId, $productList, $products)
     {
         foreach ($products as $item) {
+            $product = $productList[$item['product_id']];
 
-            $product = Product::findOne($item['product_id']);
-
-            if (!$product) {
-                throw new HttpException(404, 'Product not found');
+            if (!isset($product)) {
+                throw new HttpException(404, "Product ID {$item['product_id']} not found");
             }
 
             $detail = new OrderDetail();

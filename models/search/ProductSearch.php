@@ -8,9 +8,9 @@ use app\models\Product;
 use app\models\response\ProductResponse;
 
 /**
- * ProdcutSearch represents the model behind the search form of `app\models\Product`.
+ * ProductSearch represents the model behind the search form of `app\models\Product`.
  */
-class ProdcutSearch extends Product
+class ProductSearch extends Product
 {
     public $key;
     public $pageSize = 5;
