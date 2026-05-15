@@ -9,6 +9,7 @@ use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use app\services\CategoryService;
 use Yii;
+use yii\web\UploadedFile;
 
 /**
  * CategoryController implements the CRUD actions for Category model.
@@ -50,19 +51,8 @@ class CategoryController extends Controller
      *
      * @return string
      */
+
     public function actionIndex()
-    {
-        $searchModel = new CategorySearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
-
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    public function actionApiIndex()
     {
         $params = $this->request->queryParams;
 
@@ -86,14 +76,8 @@ class CategoryController extends Controller
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
 
-    public function actionApiView($id)
+    public function actionView($id)
     {
         return [
             'model'=>$this->findModel($id)
@@ -105,6 +89,7 @@ class CategoryController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
+
     public function actionCreate()
     {
         $model = new CategoryResponse();
@@ -112,26 +97,7 @@ class CategoryController extends Controller
         if ($this->request->isPost) {
             $result = $this->categoryService->create($model, $this->request->post());
             if ($result) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-
-            $model->loadDefaultValues();
-        }
-
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionApiCreate()
-    {
-        $model = new CategoryResponse();
-
-        if ($this->request->isPost) {
-            $result = $this->categoryService->create($model, $this->request->post());
-            if ($result) {
+                $model->refresh();
                 return [
                     'msg' => 'Thêm thành công',
                     'model' => $model
@@ -144,7 +110,8 @@ class CategoryController extends Controller
 
 
         return [
-            'msg' => 'Không có gì được thêm'
+            'msg' => 'Không có gì được thêm',
+            'error' => $model->errors
         ];
     }
 
@@ -157,30 +124,14 @@ class CategoryController extends Controller
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
+
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
         if ($this->request->isPost) {
             if ($this->categoryService->update($model, $this->request->post())) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        }
-
-        // return [
-        //     'model' => $model,
-        // ];
-        return $this->render('update', [
-            'model' => $model,
-        ]);
-    }
-
-    public function actionApiUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($this->request->isPost) {
-            if ($this->categoryService->update($model, $this->request->post())) {
+                $model->refresh();
                 return [
                     'msg' => 'Update thành công',
                     'model' => $model
@@ -189,7 +140,8 @@ class CategoryController extends Controller
         }
 
        return [
-            'msg' => 'update error'
+            'msg' => 'update error',
+            'error' => $model->errors
         ];
 
     }
@@ -201,17 +153,7 @@ class CategoryController extends Controller
      * @return \yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
-    {
-        $model = $this->findModel($id);
-
-        if (!$this->categoryService->delete($model)) {
-            throw new NotFoundHttpException('Xóa thất bại');
-        }
-
-        return $this->redirect(['index']);
-    }
-
+   
     public function actionApiDelete($id)
     {
         $model = $this->findModel($id);

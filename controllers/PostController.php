@@ -2,28 +2,37 @@
 
 namespace app\controllers;
 
-use app\models\Product;
-use app\models\response\ProductResponse;
-use app\models\search\ProductSearch;
-use app\services\ProductService;
+use app\models\Post;
+use app\models\response\PostResponese;
+use app\models\search\PostSearch;
+use app\services\PostService;
 use Override;
 use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Response;
 
 /**
- * ProductController implements the CRUD actions for Product model.
+ * PostController implements the CRUD actions for Post model.
  */
-class ProductController extends Controller
+class PostController extends Controller
 {
     public $enableCsrfValidation = false;
+    public $postService;
+
+    #[Override]
+    public function init()
+    {
+        $this->postService = new PostService();
+        return parent::init();
+    }
     /**
      * @inheritDoc
      */
     public function behaviors()
     {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        Yii::$app->response->format = Response::FORMAT_JSON;
         return array_merge(
             parent::behaviors(),
             [
@@ -37,73 +46,53 @@ class ProductController extends Controller
         );
     }
 
-    private ProductService $productService;
-    #[Override]
-    public function init()
-    {
-        $this->productService = new ProductService();
-        return parent::init();
-    }
-
     /**
-     * Lists all Product models.
+     * Lists all Post models.
      *
      * @return string
      */
     public function actionIndex()
     {
-        $searchModel = new ProductSearch();
+        $searchModel = new PostSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-        $model = new ProductResponse();
 
         return [
-            'items' => $dataProvider->getModels(),
-            'product active' => $model->find()->active()->all(),
-            'pagination' => [
-                'total' => $dataProvider->getTotalCount(),
-                'page' => $dataProvider->pagination->page + 1,
-                'pageSize' => $dataProvider->pagination->pageSize,
-                'pageCount' => $dataProvider->pagination->getPageCount(),
-            ]
+            'data' => $dataProvider->getModels()
         ];
     }
 
     /**
-     * Displays a single Product model.
+     * Displays a single Post model.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
     {
-
         return [
             'model' => $this->findModel($id),
         ];
     }
 
     /**
-     * Creates a new Product model.
+     * Creates a new Post model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
     public function actionCreate()
     {
-        $model = new ProductResponse();
+        $model = new PostResponese();
 
         if ($this->request->isPost) {
-            $result = $this->productService->create($model, $this->request->post());
+            $result = $this->postService->create($model, $this->request->post());
             if ($result) {
+                $model->refresh();
                 return [
                     'msg' => 'create sucess',
-                    'model' => $model
+                    'data' => $model
                 ];
             }
-        } else {
-
-            $model->loadDefaultValues();
         }
-
 
         return [
             'msg' => 'create error',
@@ -112,7 +101,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Updates an existing Product model.
+     * Updates an existing Post model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
      * @return string|\yii\web\Response
@@ -122,11 +111,33 @@ class ProductController extends Controller
     {
         $model = $this->findModel($id);
 
+
         if ($this->request->isPost) {
-            if ($this->productService->update($model, $this->request->post())) {
+            $result = $this->postService->update($model, $this->request->post());
+            if ($result) {
+                $model->refresh();
                 return [
-                    'msg' => 'Update thành công',
-                    'model' => $model
+                    'msg' => 'update sucess',
+                    'data' => $model
+                ];
+            }
+        }
+
+        return [
+            'msg' => 'update error',
+            'error' => $model->errors
+        ];
+    }
+
+    public function actionUpdateStatus($id)
+    {
+        $model = $this->findModel($id);
+        if ($this->request->isPost) {
+            $result = $this->postService->updateStatus($model, $this->request->post());
+            if ($result) {
+                return [
+                    'msg' => 'update sucess',
+                    'data' => $model
                 ];
             }
         }
@@ -138,7 +149,7 @@ class ProductController extends Controller
     }
 
     /**
-     * Deletes an existing Product model.
+     * Deletes an existing Post model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id ID
      * @return \yii\web\Response
@@ -148,28 +159,27 @@ class ProductController extends Controller
     {
         $model = $this->findModel($id);
 
-        if (!$this->productService->delete($model)) {
+        if (!$this->postService->delete($model)) {
             return [
                 'msg' => 'Delete error'
             ];
         }
 
         return [
-            'msg' => 'Delete sucess',
-            'error' => $model->errors
+            'msg' => 'Delete sucess'
         ];
     }
 
     /**
-     * Finds the Product model based on its primary key value.
+     * Finds the Post model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Product the loaded model
+     * @return Post the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = ProductResponse::findOne(['id' => $id])) !== null) {
+        if (($model = PostResponese::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

@@ -52,8 +52,26 @@ $config = [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            //'enableStrictParsing' => true,
             'rules' => [
+                // '<controller>' => '<controller>/index',
+
+                // '<controller>/create' => '<controller>/create',
+
+                // '<controller>/<id:\d+>' => '<controller>/view',
+
+                // '<controller>/update/<id:\d+>' => '<controller>/update',
+
+                // '<controller>/delete/<id:\d+>' => '<controller>/delete',
+
+                // 'debug/<controller>/<action>' => 'debug/<controller>/<action>',
             ],
+        ],
+
+        'media' => [
+            'class' => 'app\components\MediaComponent',
+            'basePath' => '@webroot/uploads/',
+            'baseUrl' => '/uploads',
         ],
     ],
     'params' => $params,

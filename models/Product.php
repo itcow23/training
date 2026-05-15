@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\behaviors\MediaBehavior;
 use app\behaviors\SlugBehavior;
 use app\models\query\ProductQuery;
 use Override;
@@ -31,19 +32,24 @@ class Product extends \yii\db\ActiveRecord
 {
 
     public $image;
+    public $removed_image;
 
     #[Override]
     public function behaviors()
     {
-       return [
+        return [
             SlugBehavior::class,
-            [
+            'timestamp' => [
                 'class' => TimestampBehavior::class,
-                'value' => function (){
-                   return date('Y-m-d H:i:s');
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
                 }
-            ]
-       ];
+            ],
+            'media' => [
+                'class' => MediaBehavior::class,
+                'collection' => 'gallery',
+            ],
+        ];
     }
 
     /**
@@ -66,7 +72,7 @@ class Product extends \yii\db\ActiveRecord
             [['category_id', 'status', 'discount'], 'integer'],
             [['price'], 'number'],
             [['description'], 'string'],
-            [['created_at', 'updated_at'], 'safe'],
+            [['created_at', 'updated_at','removed_image'], 'safe'],
             [['name', 'slug'], 'string', 'max' => 255],
             [['slug'], 'unique'],
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => Category::class, 'targetAttribute' => ['category_id' => 'id']],
@@ -152,5 +158,4 @@ class Product extends \yii\db\ActiveRecord
     {
         return new ProductQuery(get_called_class());
     }
-
 }

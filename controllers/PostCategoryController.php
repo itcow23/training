@@ -2,28 +2,35 @@
 
 namespace app\controllers;
 
-use app\models\Product;
-use app\models\response\ProductResponse;
-use app\models\search\ProductSearch;
-use app\services\ProductService;
-use Override;
-use Yii;
+use app\models\response\PostCategoryResponse;
+use app\models\search\PostCategorySearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use app\services\PostCategoryService;
+use Yii;
 
 /**
- * ProductController implements the CRUD actions for Product model.
+ * CategoryController implements the CRUD actions for Category model.
  */
-class ProductController extends Controller
+class PostCategoryController extends Controller
 {
-    public $enableCsrfValidation = false;
+    public  $enableCsrfValidation = false;
+
+    private PostCategoryService $postCategoryService;
+    public function init()
+    {
+        parent::init();
+        $this->postCategoryService = new PostCategoryService();
+    }
+
     /**
      * @inheritDoc
      */
     public function behaviors()
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
         return array_merge(
             parent::behaviors(),
             [
@@ -37,28 +44,22 @@ class ProductController extends Controller
         );
     }
 
-    private ProductService $productService;
-    #[Override]
-    public function init()
-    {
-        $this->productService = new ProductService();
-        return parent::init();
-    }
 
     /**
-     * Lists all Product models.
+     * Lists all Category models.
      *
      * @return string
      */
+
     public function actionIndex()
     {
-        $searchModel = new ProductSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
-        $model = new ProductResponse();
+        $params = $this->request->queryParams;
 
+        $model = new PostCategorySearch();
+        $dataProvider = $model->search($params);
         return [
             'items' => $dataProvider->getModels(),
-            'product active' => $model->find()->active()->all(),
+
             'pagination' => [
                 'total' => $dataProvider->getTotalCount(),
                 'page' => $dataProvider->pagination->page + 1,
@@ -69,107 +70,105 @@ class ProductController extends Controller
     }
 
     /**
-     * Displays a single Product model.
+     * Displays a single Category model.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
     {
-
         return [
-            'model' => $this->findModel($id),
+            'model'=>$this->findModel($id)
         ];
     }
 
     /**
-     * Creates a new Product model.
+     * Creates a new Category model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
+
     public function actionCreate()
     {
-        $model = new ProductResponse();
+        $model = new PostCategoryResponse();
 
         if ($this->request->isPost) {
-            $result = $this->productService->create($model, $this->request->post());
+            $result = $this->postCategoryService->create($model, $this->request->post());
             if ($result) {
                 return [
-                    'msg' => 'create sucess',
+                    'msg' => 'create success',
                     'model' => $model
                 ];
             }
-        } else {
-
-            $model->loadDefaultValues();
         }
 
-
         return [
-            'msg' => 'create error',
-            'error' => $model->errors
+            'msg' => 'create error'
         ];
     }
 
+
+
     /**
-     * Updates an existing Product model.
+     * Updates an existing Category model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
+
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
         if ($this->request->isPost) {
-            if ($this->productService->update($model, $this->request->post())) {
+            if ($this->postCategoryService->update($model, $this->request->post())) {
                 return [
-                    'msg' => 'Update thành công',
+                    'msg' => 'Update sucess',
                     'model' => $model
                 ];
             }
         }
 
-        return [
-            'msg' => 'update error',
-            'error' => $model->errors
+       return [
+            'msg' => 'update error'
         ];
+
     }
 
     /**
-     * Deletes an existing Product model.
+     * Deletes an existing Category model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param int $id ID
      * @return \yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
+
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
 
-        if (!$this->productService->delete($model)) {
-            return [
+        if (!$this->postCategoryService->delete($model)) {
+           return [
                 'msg' => 'Delete error'
-            ];
+           ];
         }
 
         return [
-            'msg' => 'Delete sucess',
-            'error' => $model->errors
-        ];
+                'msg' => 'Delete sucess'
+           ];
     }
 
     /**
-     * Finds the Product model based on its primary key value.
+     * Finds the Category model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Product the loaded model
+     * @return PostCategoryResponse the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = ProductResponse::findOne(['id' => $id])) !== null) {
+        if (($model = PostCategoryResponse::findOne(['id' => $id])) !== null) {
             return $model;
         }
 

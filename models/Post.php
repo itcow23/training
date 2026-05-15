@@ -2,7 +2,11 @@
 
 namespace app\models;
 
-use Yii;
+use app\behaviors\MediaBehavior;
+use app\behaviors\SlugBehavior;
+use app\models\query\PostQuery;
+use Override;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "post".
@@ -30,6 +34,33 @@ class Post extends \yii\db\ActiveRecord
 {
 
 
+    const STATUS_DRAFT = 0;
+    const STATUS_PUBLISHED = 1;
+    const STATUS_HIDDEN = 2;
+    const STATUS_ARCHIVED = 3;
+
+    public $image;
+    public $removed_image;
+    #[Override]
+    public function behaviors()
+    {
+        return [
+            'slug' => [
+                'class' => SlugBehavior::class,
+                'attribute' => 'title'
+            ],
+            'timestamp' => [
+                'class' => TimestampBehavior::class,
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
+                }
+            ],
+            'media' => [
+                'class' => MediaBehavior::class,
+                'collection' => 'image post'
+            ]
+        ];
+    }
     /**
      * {@inheritdoc}
      */
@@ -46,12 +77,13 @@ class Post extends \yii\db\ActiveRecord
         return [
             [['description', 'thumbnail', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 0],
-            [['title', 'content', 'published_at', 'slug', 'category_id'], 'required'],
+            [['title', 'content', 'slug', 'category_id'], 'required'],
             [['description', 'content'], 'string'],
-            [['published_at', 'created_at', 'updated_at'], 'safe'],
+            [['published_at', 'created_at', 'updated_at','removed_image'], 'safe'],
             [['status', 'category_id'], 'integer'],
             [['title', 'thumbnail', 'slug'], 'string', 'max' => 255],
             [['slug'], 'unique'],
+            [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => PostCategory::class, 'targetAttribute' => ['category_id' => 'id']],
         ];
     }
@@ -136,4 +168,15 @@ class Post extends \yii\db\ActiveRecord
         return $this->hasMany(Rating::class, ['post_id' => 'id']);
     }
 
+
+      public function getMedia()
+    {
+        return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'post']);
+    }
+
+    #[Override]
+    public static function find()
+    {
+        return new PostQuery(get_called_class());
+    }
 }

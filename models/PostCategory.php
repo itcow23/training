@@ -2,7 +2,10 @@
 
 namespace app\models;
 
-use Yii;
+use app\behaviors\SlugBehavior;
+use app\models\query\PostCategoryQuery;
+use Override;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "post_category".
@@ -18,6 +21,19 @@ use Yii;
 class PostCategory extends \yii\db\ActiveRecord
 {
 
+    #[Override]
+    public function behaviors()
+    {
+        return [
+            SlugBehavior::class,
+            'timestamps' => [
+                'class' => TimestampBehavior::class,
+                'value' => function (){
+                     return date('Y-m-d H:i:s');
+                }
+            ]
+        ];
+    }
 
     /**
      * {@inheritdoc}
@@ -63,6 +79,12 @@ class PostCategory extends \yii\db\ActiveRecord
     public function getPosts()
     {
         return $this->hasMany(Post::class, ['category_id' => 'id']);
+    }
+
+    #[Override]
+    public static function find()
+    {
+        return new PostCategoryQuery(get_called_class());
     }
 
 }

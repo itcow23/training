@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use app\behaviors\MediaBehavior;
 use app\behaviors\SlugBehavior;
 use app\models\query\CategoryQuery;
 use yii\behaviors\TimestampBehavior;
@@ -21,6 +22,7 @@ class Category extends \yii\db\ActiveRecord
 {
 
     public $image;
+    public $removed_image;
     /**
      * {@inheritdoc}
      */
@@ -28,12 +30,16 @@ class Category extends \yii\db\ActiveRecord
     {
         return [
             SlugBehavior::class,
-            [
+            'timestamp' => [
                 'class' => TimestampBehavior::class,
                 'value' => function () {
                     return date('Y-m-d H:i:s');
                 },
-            ]
+            ],
+            'media' => [
+                'class' => MediaBehavior::class,
+                'collection' => 'thumbnail',
+            ],
 
         ];
     }
@@ -55,7 +61,7 @@ class Category extends \yii\db\ActiveRecord
         return [
             [['slug', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['name'], 'required'],
-            [['created_at', 'updated_at'], 'safe'],
+            [['created_at', 'updated_at','removed_image'], 'safe'],
             [['name', 'slug'], 'string', 'max' => 255],
             [['name'], 'unique'],
             [['slug'], 'unique'],
