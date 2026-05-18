@@ -2,7 +2,9 @@
 
 namespace app\services;
 
+use app\models\forms\PostForm;
 use app\models\Post;
+use app\models\response\PostResponese;
 use RuntimeException;
 use Throwable;
 use Yii;
@@ -10,44 +12,68 @@ use yii\web\UploadedFile;
 
 class PostService
 {
-    public function create($model, $postData)
+    public function create(PostResponese $model, PostForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
+
+    public function update(PostResponese $model, PostForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
+
+    private function save(PostResponese $model, PostForm $form)
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Load error');
-            }
-             $model->image = UploadedFile::getInstancesByName('image');
+            $this->assignAttributes($model, $form);
+            $model->image = UploadedFile::getInstancesByName('image');
+
             if (!$model->save()) {
-                throw new RuntimeException('Save error');
+                $transaction->rollBack();
+                return false;
             }
 
             $transaction->commit();
-            return true;
-        } catch (\Throwable $e) {
+            return PostResponese::findOne($model->id);
+        } catch (Throwable $e) {
             $transaction->rollBack();
-            Yii::error($e->getMessage());
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }
 
-    public function update($model, $postData)
+    private function assignAttributes(PostResponese $model, PostForm $form): void
+    {
+        $attributes = $form->getAttributes([
+            'category_id', 'title', 'content', 'status', 'description',
+        ]);
+
+        $model->setAttributes($attributes, false);
+
+        if ($form->removed_image !== null && is_array($form->removed_image)) {
+            $model->removed_image = $form->removed_image;
+        }
+    }
+
+    public function delete(PostResponese $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Load error');
+            if (!$model->delete()) {
+                throw new RuntimeException('Failed to delete product.');
             }
-             $model->image = UploadedFile::getInstancesByName('image');
-            if (!$model->save()) {
-                throw new RuntimeException('Save error');
-            }
-
             $transaction->commit();
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
-            Yii::error($e->getMessage());
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }
@@ -78,19 +104,4 @@ class PostService
         }
     }
 
-    public function delete($model)
-    {
-        $transaction = Yii::$app->db->beginTransaction();
-        try {
-            if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete.');
-            }
-            $transaction->commit();
-            return true;
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            Yii::error($e->getMessage());
-            return false;
-        }
-    }
 }

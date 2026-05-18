@@ -2,7 +2,8 @@
 
 namespace app\services;
 
-use app\models\Category;
+use app\models\forms\CategoryForm;
+use app\models\response\CategoryResponse;
 use RuntimeException;
 use Throwable;
 use Yii;
@@ -10,87 +11,64 @@ use yii\web\UploadedFile;
 
 class CategoryService
 {
+    public function create(CategoryResponse $model, CategoryForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
 
-    public function create(Category $model, array $postData)
+    public function update(CategoryResponse $model, CategoryForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
+
+    private function save(CategoryResponse $model, CategoryForm $form)
     {
         $transaction = Yii::$app->db->beginTransaction();
-
         try {
-
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Load fail');
-            }
-
+            $this->assignAttributes($model, $form);
             $model->image = UploadedFile::getInstancesByName('image');
 
             if (!$model->save()) {
-                throw new RuntimeException(
-                    json_encode($model->errors)
-                );
+                $transaction->rollBack();
+                return false;
             }
 
             $transaction->commit();
-
-            return true;
-        } catch (\Throwable $e) {
-
+            return CategoryResponse::findOne($model->id);
+        } catch (Throwable $e) {
             $transaction->rollBack();
-
-            $model->addError(
-                'image',
-                $e->getMessage()
-            );
-
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }
 
-    public function update(Category $model, array $postData): bool
+    private function assignAttributes(CategoryResponse $model, CategoryForm $form): void
     {
-        $transaction = Yii::$app->db->beginTransaction();
+        $model->setAttributes($form->getAttributes(['name']), false);
 
-        try {
-
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Load fail');
-            }
-
-            $model->image = UploadedFile::getInstancesByName('image');
-
-            if (!$model->save()) {
-                throw new RuntimeException(
-                    json_encode($model->errors)
-                );
-            }
-
-            $transaction->commit();
-
-            return true;
-        } catch (\Throwable $e) {
-
-            $transaction->rollBack();
-
-            $model->addError(
-                'image',
-                $e->getMessage()
-            );
-
-            return false;
+        if ($form->removed_image !== null && is_array($form->removed_image)) {
+            $model->removed_image = $form->removed_image;
         }
     }
 
-    public function delete(Category $model): bool
+    public function delete(CategoryResponse $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete category.');
+                throw new RuntimeException('Cannot delete this category.');
             }
-
             $transaction->commit();
             return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }

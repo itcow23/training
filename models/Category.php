@@ -20,7 +20,6 @@ use yii\behaviors\TimestampBehavior;
  */
 class Category extends \yii\db\ActiveRecord
 {
-
     public $image;
     public $removed_image;
     /**
@@ -59,13 +58,11 @@ class Category extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['slug', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['name'], 'required'],
-            [['created_at', 'updated_at','removed_image'], 'safe'],
+            [['created_at', 'updated_at'], 'safe'],
             [['name', 'slug'], 'string', 'max' => 255],
             [['name'], 'unique'],
             [['slug'], 'unique'],
-            [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
         ];
     }
 

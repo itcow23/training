@@ -2,22 +2,17 @@
 
 namespace app\controllers;
 
+use app\models\forms\CategoryForm;
 use app\models\response\CategoryResponse;
 use app\models\search\CategorySearch;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 use app\services\CategoryService;
-use Yii;
-use yii\web\UploadedFile;
 
 /**
  * CategoryController implements the CRUD actions for Category model.
  */
-class CategoryController extends Controller
+class CategoryController extends BaseController
 {
-    public  $enableCsrfValidation = false;
-
     private CategoryService $categoryService;
     public function init()
     {
@@ -28,24 +23,6 @@ class CategoryController extends Controller
     /**
      * @inheritDoc
      */
-    public function behaviors()
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
-
-
     /**
      * Lists all Category models.
      *
@@ -80,7 +57,7 @@ class CategoryController extends Controller
     public function actionView($id)
     {
         return [
-            'model'=>$this->findModel($id)
+            'model' => $this->findModel($id)
         ];
     }
 
@@ -92,30 +69,18 @@ class CategoryController extends Controller
 
     public function actionCreate()
     {
+        $form = new CategoryForm(['scenario' => CategoryForm::SCENARIO_CREATE]);
         $model = new CategoryResponse();
 
-        if ($this->request->isPost) {
-            $result = $this->categoryService->create($model, $this->request->post());
-            if ($result) {
-                $model->refresh();
-                return [
-                    'msg' => 'Thêm thành công',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->categoryService->create($model, $form)) {
+                return $this->successResponse('Created successfully', ['model' => $result]);
             }
-        } else {
-
-            $model->loadDefaultValues();
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
         }
 
-
-        return [
-            'msg' => 'Không có gì được thêm',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
-
-
 
     /**
      * Updates an existing Category model.
@@ -128,22 +93,16 @@ class CategoryController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $form = new CategoryForm(['scenario' => CategoryForm::SCENARIO_UPDATE, 'id' => $model->id]);
 
-        if ($this->request->isPost) {
-            if ($this->categoryService->update($model, $this->request->post())) {
-                $model->refresh();
-                return [
-                    'msg' => 'Update thành công',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->categoryService->update($model, $form)) {
+                return $this->successResponse('Updated successfully', ['model' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
         }
 
-       return [
-            'msg' => 'update error',
-            'error' => $model->errors
-        ];
-
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -153,20 +112,16 @@ class CategoryController extends Controller
      * @return \yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
-   
-    public function actionApiDelete($id)
+
+    public function actionDelete($id)
     {
         $model = $this->findModel($id);
 
         if (!$this->categoryService->delete($model)) {
-           return [
-                'msg' => 'Delete error'
-           ];
+            return $this->errorResponse($model, 'Failed to delete');
         }
 
-        return [
-                'msg' => 'Delete sucess'
-           ];
+        return $this->successResponse('Delete success');
     }
 
     /**
@@ -178,10 +133,6 @@ class CategoryController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = CategoryResponse::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
+        return parent::findModelByClass(CategoryResponse::class, $id);
     }
 }

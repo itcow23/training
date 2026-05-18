@@ -2,66 +2,73 @@
 
 namespace app\services;
 
+use app\models\forms\PostCategoryForm;
+use app\models\response\PostCategoryResponse;
 use RuntimeException;
 use Throwable;
 use Yii;
+use yii\web\UploadedFile;
 
 class PostCategoryService
 {
-    public function create($model, $postData)
+    public function create(PostCategoryResponse $model, PostCategoryForm $form)
     {
-        $transaction = Yii::$app->db->begintransaction();
-        try{
-            if(!$model->load($postData,'')){
-                Throw new RuntimeException('Load data error');
-            }
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
 
-            if(!$model->save()){
-               Throw new RuntimeException('Save error');
+    public function update(PostCategoryResponse $model, PostCategoryForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
+
+    private function save(PostCategoryResponse $model, PostCategoryForm $form)
+    {
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $this->assignAttributes($model, $form);
+
+            if (!$model->save()) {
+                $transaction->rollBack();
+                return false;
             }
 
             $transaction->commit();
-            return true;
-        }catch(Throwable $e){
+            return PostCategoryResponse::findOne($model->id);
+        } catch (Throwable $e) {
             $transaction->rollBack();
-            Yii::error($e->getMessage());
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }
 
-    public function update($model, $postData)
+    private function assignAttributes(PostCategoryResponse $model, PostCategoryForm $form): void
     {
-        $transaction = Yii::$app->db->begintransaction();
-        try{
-            if(!$model->load($postData,'')){
-                Throw new RuntimeException('Load data error');
-            }
+        $attributes = $form->getAttributes([
+            'name'
+        ]);
 
-            if(!$model->save()){
-               Throw new RuntimeException('update error');
-            }
+        $model->setAttributes($attributes, false);
 
-            $transaction->commit();
-            return true;
-        }catch(Throwable $e){
-            $transaction->rollBack();
-            Yii::error($e->getMessage());
-            return false;
-        }
     }
 
-    public function delete($model)
+    public function delete(PostCategoryResponse $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete.');
+                throw new RuntimeException('Failed to delete product.');
             }
             $transaction->commit();
             return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
-             Yii::error($e->getMessage());
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }

@@ -6,7 +6,7 @@ use app\models\Media;
 use Yii;
 use yii\base\Behavior;
 use yii\db\ActiveRecord;
-use yii\web\NotFoundHttpException;
+use RuntimeException;
 
 class MediaBehavior extends Behavior
 {
@@ -32,6 +32,7 @@ class MediaBehavior extends Behavior
         $files = $model->{$this->attribute};
         $removed = $model->{$this->removed};
 
+
         if (!$files && empty($removed)) {
             return;
         }
@@ -48,7 +49,7 @@ class MediaBehavior extends Behavior
                     ->all();
 
                 if (empty($removeMedias)) {
-                    throw new NotFoundHttpException("media not found");
+                    throw new RuntimeException("Media not found.");
                 }
 
                 foreach ($removeMedias as $media) {
@@ -64,7 +65,7 @@ class MediaBehavior extends Behavior
                     $uploaded = Yii::$app->media->upload($file, $folder);
 
                     if (!$uploaded) {
-                        throw new \RuntimeException('Upload fail');
+                        throw new RuntimeException('Failed to upload image.');
                     }
 
                     $media = new Media();
@@ -74,7 +75,7 @@ class MediaBehavior extends Behavior
                     $media->filepath = $uploaded['url'];
 
                     if (!$media->save()) {
-                        throw new \RuntimeException('Save media fail');
+                        throw new RuntimeException('Failed to save media information.');
                     }
                 }
             }

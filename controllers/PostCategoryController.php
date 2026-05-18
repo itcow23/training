@@ -2,21 +2,17 @@
 
 namespace app\controllers;
 
+use app\models\forms\PostCategoryForm;
 use app\models\response\PostCategoryResponse;
 use app\models\search\PostCategorySearch;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 use app\services\PostCategoryService;
-use Yii;
 
 /**
  * CategoryController implements the CRUD actions for Category model.
  */
-class PostCategoryController extends Controller
+class PostCategoryController extends BaseController
 {
-    public  $enableCsrfValidation = false;
-
     private PostCategoryService $postCategoryService;
     public function init()
     {
@@ -27,24 +23,6 @@ class PostCategoryController extends Controller
     /**
      * @inheritDoc
      */
-    public function behaviors()
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
-
-
     /**
      * Lists all Category models.
      *
@@ -78,7 +56,7 @@ class PostCategoryController extends Controller
     public function actionView($id)
     {
         return [
-            'model'=>$this->findModel($id)
+            'model' => $this->findModel($id)
         ];
     }
 
@@ -91,20 +69,16 @@ class PostCategoryController extends Controller
     public function actionCreate()
     {
         $model = new PostCategoryResponse();
+        $form = new PostCategoryForm(['scenario' => PostCategoryForm::SCENARIO_CREATE]);
 
-        if ($this->request->isPost) {
-            $result = $this->postCategoryService->create($model, $this->request->post());
-            if ($result) {
-                return [
-                    'msg' => 'create success',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->postCategoryService->create($model, $form)) {
+                return $this->successResponse('Created successfully', ['model' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
         }
 
-        return [
-            'msg' => 'create error'
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
 
@@ -120,20 +94,16 @@ class PostCategoryController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $form = new PostCategoryForm(['scenario' => PostCategoryForm::SCENARIO_UPDATE, 'id' => $model->id]);
 
-        if ($this->request->isPost) {
-            if ($this->postCategoryService->update($model, $this->request->post())) {
-                return [
-                    'msg' => 'Update sucess',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->postCategoryService->update($model, $form)) {
+                return $this->successResponse('Updated successfully', ['model' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
         }
 
-       return [
-            'msg' => 'update error'
-        ];
-
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -149,14 +119,10 @@ class PostCategoryController extends Controller
         $model = $this->findModel($id);
 
         if (!$this->postCategoryService->delete($model)) {
-           return [
-                'msg' => 'Delete error'
-           ];
+            return $this->errorResponse($model, 'Delete error');
         }
 
-        return [
-                'msg' => 'Delete sucess'
-           ];
+        return $this->successResponse('Delete success');
     }
 
     /**
@@ -168,10 +134,6 @@ class PostCategoryController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = PostCategoryResponse::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
+        return parent::findModelByClass(PostCategoryResponse::class, $id);
     }
 }

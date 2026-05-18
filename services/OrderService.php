@@ -4,10 +4,10 @@ namespace app\services;
 
 use Throwable;
 use RuntimeException;
+use app\models\forms\OrderForm;
+use app\models\response\OrderResponse;
 use Yii;
-use yii\web\HttpException;
 use app\models\Product;
-
 
 class OrderService
 {
@@ -17,17 +17,22 @@ class OrderService
         $this->orderDetailService = new OrderDetailService();
     }
 
-    public function create($model, $postData)
+    public function create(OrderResponse $model, OrderForm $form)
     {
+        if (!$form->validate()) {
+            return false;
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
+            $model->setAttributes($form->getAttributes(), false);
 
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Failed to load.');
+            if (empty($form->products)) {
+                throw new RuntimeException('Products list is required.');
             }
 
-            $result = $this->calculateSubtotal($postData['products']);
+            $result = $this->calculateSubtotal($form->products);
             $subtotal = $result['subtotal'];
             $productList = $result['productList'];
 
@@ -38,23 +43,17 @@ class OrderService
             $model->final_total = $subtotal - $discountAmount;
 
             if (!$model->save()) {
-
-                throw new HttpException(
-                    422,
-                    json_encode($model->errors)
-                );
+                throw new RuntimeException(json_encode($model->errors));
             }
 
-            $this->orderDetailService->create($model->id, $productList, $postData['products']);
+            $this->orderDetailService->create($model->id, $productList, $form->products);
 
             $transaction->commit();
 
-            return true;
+            return $model;
         } catch (Throwable $e) {
-
             $transaction->rollBack();
-
-            $model->addError('order', $e->getMessage());
+            $form->addError('order', $e->getMessage());
 
             return false;
         }
@@ -71,12 +70,11 @@ class OrderService
                         ->indexBy('id')
                         ->all();
         foreach ($products as $item) {
+            if (!isset($productList[$item['product_id']])) {
+                throw new RuntimeException('Product does not exist.');
+            }
 
             $product = $productList[$item['product_id']];
-
-            if (!$product) {
-                throw new HttpException(404, 'Product not found');
-            }
 
             $subtotal += $product->price * $item['quantity'];
         }
@@ -88,29 +86,48 @@ class OrderService
 
     private function calculateDiscount($subtotal, $membershipLevelId)
     {
-        return match ($membershipLevelId) {
-            '1' => $subtotal * 0.1,
-            '2' => $subtotal * 0.2,
-            '3' => $subtotal * 0.3,
+        // Ép kiểu về int để đảm bảo match hoạt động chính xác
+        return match ((int)$membershipLevelId) {
+            1 => $subtotal * 0.1,
+            2 => $subtotal * 0.2,
+            3 => $subtotal * 0.3,
             default => 0
         };
     }
 
-    public function updateStatusOrder($model, $postData)
+    public function delete(OrderResponse $model)
     {
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$model->delete()) {
+                throw new RuntimeException('Failed to delete order.');
+            }
+            $transaction->commit();
+            return true;
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            return false;
+        }
+    }
+    public function updateStatusOrder(OrderResponse $model, OrderForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
+            $newStatus = (int)$form->status;
+            $oldStatus = (int)$model->status;
 
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Load data failed.');
-            }
-
-            $validateStatus = $this->validateStatusTransition($model, $model->getOldAttribute('status'), $model->status);
+            $validateStatus = $this->validateStatusTransition($model, $oldStatus, $newStatus);
 
             if (!$validateStatus) {
                 throw new RuntimeException('Invalid status transition.');
             }
+
+            $model->status = $newStatus;
 
             if (!$model->save()) {
                 throw new RuntimeException(json_encode($model->errors));
@@ -118,12 +135,10 @@ class OrderService
 
             $transaction->commit();
 
-            return true;
+            return $model;
         } catch (Throwable $e) {
-
             $transaction->rollBack();
-
-            $model->addError('status', $e->getMessage());
+            $form->addError('status', $e->getMessage());
 
             return false;
         }

@@ -2,49 +2,26 @@
 
 namespace app\controllers;
 
-use app\models\response\PostCategoryResponse;
-use app\models\search\PostCategorySearch;
-use yii\web\Controller;
+use app\services\CommentService;
+use app\models\Comment;
+use app\models\forms\CommentForm;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use app\services\PostCategoryService;
-use Yii;
 
 /**
  * CategoryController implements the CRUD actions for Category model.
  */
-class PostCategoryController extends Controller
+class CommentController extends BaseController
 {
-    public  $enableCsrfValidation = false;
-
-    private PostCategoryService $postCategoryService;
+    private CommentService $commentService;
     public function init()
     {
         parent::init();
-        $this->postCategoryService = new PostCategoryService();
+        $this->commentService = new CommentService();
     }
 
     /**
      * @inheritDoc
      */
-    public function behaviors()
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
-
-
     /**
      * Lists all Category models.
      *
@@ -53,19 +30,8 @@ class PostCategoryController extends Controller
 
     public function actionIndex()
     {
-        $params = $this->request->queryParams;
-
-        $model = new PostCategorySearch();
-        $dataProvider = $model->search($params);
         return [
-            'items' => $dataProvider->getModels(),
-
-            'pagination' => [
-                'total' => $dataProvider->getTotalCount(),
-                'page' => $dataProvider->pagination->page + 1,
-                'pageSize' => $dataProvider->pagination->pageSize,
-                'pageCount' => $dataProvider->pagination->getPageCount(),
-            ]
+            'msg' => 'index'
         ];
     }
 
@@ -90,21 +56,17 @@ class PostCategoryController extends Controller
 
     public function actionCreate()
     {
-        $model = new PostCategoryResponse();
+        $model = new Comment();
+        $form = new CommentForm(['scenario' => CommentForm::SCENARIO_CREATE]);
 
-        if ($this->request->isPost) {
-            $result = $this->postCategoryService->create($model, $this->request->post());
-            if ($result) {
-                return [
-                    'msg' => 'create success',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($this->commentService->create($model, $form)) {
+                return $this->successResponse('Create success', ['model' => $model]);
             }
+            return $this->errorResponse($form, 'Create error');
         }
 
-        return [
-            'msg' => 'create error'
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
 
@@ -119,21 +81,17 @@ class PostCategoryController extends Controller
 
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+       $model = $this->findModel($id);
+       $form = new CommentForm(['scenario' => CommentForm::SCENARIO_UPDATE]);
 
-        if ($this->request->isPost) {
-            if ($this->postCategoryService->update($model, $this->request->post())) {
-                return [
-                    'msg' => 'Update sucess',
-                    'model' => $model
-                ];
+         if($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->commentService->update($model, $form)) {
+                return $this->successResponse('Update success', ['model' => $result]);
             }
         }
 
-       return [
-            'msg' => 'update error'
-        ];
 
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -147,31 +105,27 @@ class PostCategoryController extends Controller
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
+        $form = new CommentForm(['scenario' => CommentForm::SCENARIO_DELETE]);
 
-        if (!$this->postCategoryService->delete($model)) {
-           return [
-                'msg' => 'Delete error'
-           ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($this->commentService->delete($model, $form)) {
+                return $this->successResponse('Delete success');
+            }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Delete error');
         }
 
-        return [
-                'msg' => 'Delete sucess'
-           ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
      * Finds the Category model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return PostCategoryResponse the loaded model
+     * @return Comment the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = PostCategoryResponse::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
+        return parent::findModelByClass(Comment::class, $id);
     }
 }

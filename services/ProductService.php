@@ -2,7 +2,8 @@
 
 namespace app\services;
 
-use app\models\Product;
+use app\models\forms\ProductForm;
+use app\models\response\ProductResponse;
 use RuntimeException;
 use Throwable;
 use Yii;
@@ -10,67 +11,68 @@ use yii\web\UploadedFile;
 
 class ProductService
 {
-    public function create(Product $model, array $postData)
+    public function create(ProductResponse $model, ProductForm $form)
     {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
 
+    public function update(ProductResponse $model, ProductForm $form)
+    {
+        if (!$form->validate()) {
+            return false;
+        }
+        return $this->save($model, $form);
+    }
+
+    private function save(ProductResponse $model, ProductForm $form)
+    {
         $transaction = Yii::$app->db->beginTransaction();
         try {
-
-            if (!$model->load($postData,'')) {
-               throw new RuntimeException('Load fail');
-            }
-
+            $this->assignAttributes($model, $form);
             $model->image = UploadedFile::getInstancesByName('image');
 
             if (!$model->save()) {
-                throw new RuntimeException('Failed to save Product.');
+                $transaction->rollBack();
+                return false;
             }
 
             $transaction->commit();
-            return true;
+            return ProductResponse::findOne($model->id);
         } catch (Throwable $e) {
             $transaction->rollBack();
-            $model->addError('model', $e->getMessage());
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }
 
-    public function update(Product $model, array $postData): bool
+    private function assignAttributes(ProductResponse $model, ProductForm $form): void
     {
-        $transaction = Yii::$app->db->beginTransaction();
-        try {
+        $attributes = $form->getAttributes([
+            'category_id', 'name', 'price', 'status', 'description', 'discount',
+        ]);
 
-            if (!$model->load($postData,'')) {
-               throw new RuntimeException('Load fail');
-            }
+        $model->setAttributes($attributes, false);
 
-            $model->image = UploadedFile::getInstancesByName('image');
-
-            if (!$model->save()) {
-                throw new RuntimeException('Failed to save Product.');
-            }
-
-            $transaction->commit();
-            return true;
-        } catch (Throwable $e) {
-            $transaction->rollBack();
-            $model->addError('image', $e->getMessage());
-            return false;
+        if ($form->removed_image !== null && is_array($form->removed_image)) {
+            $model->removed_image = $form->removed_image;
         }
     }
 
-    public function delete(Product $model): bool
+    public function delete(ProductResponse $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete category.');
+                throw new RuntimeException('Failed to delete product.');
             }
-
             $transaction->commit();
             return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }

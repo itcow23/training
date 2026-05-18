@@ -4,6 +4,7 @@ namespace app\services;
 
 use app\models\OrderDetail;
 use yii\web\HttpException;
+use RuntimeException;
 
 class OrderDetailService
 {
@@ -13,7 +14,7 @@ class OrderDetailService
             $product = $productList[$item['product_id']];
 
             if (!isset($product)) {
-                throw new HttpException(404, "Product ID {$item['product_id']} not found");
+                throw new RuntimeException("Product ID {$item['product_id']} does not exist.");
             }
 
             $detail = new OrderDetail();
@@ -25,10 +26,7 @@ class OrderDetailService
             $detail->total_price = $product->price * $item['quantity'];
 
             if (!$detail->save()) {
-                throw new HttpException(
-                    422,
-                    json_encode($detail->errors)
-                );
+                throw new RuntimeException(json_encode($detail->errors));
             }
         }
     }

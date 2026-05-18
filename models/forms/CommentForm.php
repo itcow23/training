@@ -1,0 +1,44 @@
+<?php
+
+namespace app\models\forms;
+
+use yii\base\Model;
+
+class CommentForm extends Model
+{
+    const SCENARIO_CREATE = 'create';
+    const SCENARIO_UPDATE = 'update';
+    const SCENARIO_DELETE = 'delete';
+
+
+    public $account_id;
+    public $post_id;
+    public $content;
+
+    public function scenarios()
+    {
+        $scenarios = Model::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['account_id', 'post_id', 'content'];
+        $scenarios[self::SCENARIO_UPDATE] = ['account_id', 'post_id', 'content'];
+        $scenarios[self::SCENARIO_DELETE] = ['account_id'];
+        return $scenarios;
+    }
+
+    public function rules()
+    {
+        return [
+            [['account_id', 'post_id', 'content'], 'required'],
+            [['account_id', 'post_id'], 'integer'],
+            [['content'], 'string'],
+        ];
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'account_id' => 'Tài khoản',
+            'post_id' => 'Bài viết',
+            'content' => 'Nội dung bình luận',
+        ];
+    }
+}

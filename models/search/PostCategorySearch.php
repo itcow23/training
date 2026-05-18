@@ -47,7 +47,7 @@ class PostCategorySearch extends PostCategory
     public function search($params, $formName = null)
     {
 
-        $query = PostCategoryResponse::find();
+        $query = PostCategoryResponse::find()->with('posts');
 
         // add conditions that should always apply here
 

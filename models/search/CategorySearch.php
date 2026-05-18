@@ -47,7 +47,7 @@ class CategorySearch extends Category
     public function search($params, $formName = null)
     {
 
-        $query = CategoryResponse::find();
+        $query = CategoryResponse::find()->with(['products','media']);
 
         // add conditions that should always apply here
 

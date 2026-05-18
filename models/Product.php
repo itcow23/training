@@ -151,7 +151,7 @@ class Product extends \yii\db\ActiveRecord
 
     public function getMedia()
     {
-        return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'product']);
+        return $this->hasMany(Media::class, ['file_id' => 'id'])->andwhere(['file_type' => 'product']);
     }
 
     public static function find()

@@ -2,48 +2,24 @@
 
 namespace app\controllers;
 
+use app\models\forms\PostForm;
 use app\models\Post;
 use app\models\response\PostResponese;
 use app\models\search\PostSearch;
-use app\services\PostService;
-use Override;
-use Yii;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use yii\web\Response;
+use app\services\PostService;
 
 /**
  * PostController implements the CRUD actions for Post model.
  */
-class PostController extends Controller
+class PostController extends BaseController
 {
-    public $enableCsrfValidation = false;
     public $postService;
 
-    #[Override]
     public function init()
     {
         $this->postService = new PostService();
         return parent::init();
-    }
-    /**
-     * @inheritDoc
-     */
-    public function behaviors()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
     }
 
     /**
@@ -82,22 +58,16 @@ class PostController extends Controller
     public function actionCreate()
     {
         $model = new PostResponese();
+        $form = new PostForm(['scenario' => PostForm::SCENARIO_CREATE]);
 
-        if ($this->request->isPost) {
-            $result = $this->postService->create($model, $this->request->post());
-            if ($result) {
-                $model->refresh();
-                return [
-                    'msg' => 'create sucess',
-                    'data' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->postService->create($model, $form)) {
+                return $this->successResponse('Created successfully', ['model' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
         }
 
-        return [
-            'msg' => 'create error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -109,24 +79,17 @@ class PostController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+         $model = $this->findModel($id);
+        $form = new PostForm(['scenario' => PostForm::SCENARIO_UPDATE]);
 
-
-        if ($this->request->isPost) {
-            $result = $this->postService->update($model, $this->request->post());
-            if ($result) {
-                $model->refresh();
-                return [
-                    'msg' => 'update sucess',
-                    'data' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->postService->update($model, $form)) {
+                return $this->successResponse('Updated successfully', ['model' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
         }
 
-        return [
-            'msg' => 'update error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     public function actionUpdateStatus($id)
@@ -135,17 +98,11 @@ class PostController extends Controller
         if ($this->request->isPost) {
             $result = $this->postService->updateStatus($model, $this->request->post());
             if ($result) {
-                return [
-                    'msg' => 'update sucess',
-                    'data' => $model
-                ];
+                return $this->successResponse('Update success', ['data' => $model]);
             }
         }
 
-        return [
-            'msg' => 'update error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($model, 'Update error');
     }
 
     /**
@@ -160,14 +117,10 @@ class PostController extends Controller
         $model = $this->findModel($id);
 
         if (!$this->postService->delete($model)) {
-            return [
-                'msg' => 'Delete error'
-            ];
+            return $this->errorResponse($model, 'Delete error');
         }
 
-        return [
-            'msg' => 'Delete sucess'
-        ];
+        return $this->successResponse('Delete success');
     }
 
     /**
@@ -179,10 +132,6 @@ class PostController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = PostResponese::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
+        return parent::findModelByClass(PostResponese::class, $id);
     }
 }

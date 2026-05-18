@@ -43,9 +43,9 @@ class PostSearch extends PostResponese
      */
     public function search($params, $formName = null)
     {
-        $query = PostResponese::find();
+        $query = PostResponese::find()->with(['comments','ratings','media']);
 
-        // add conditions that should always apply here
+
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

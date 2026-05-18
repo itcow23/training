@@ -2,43 +2,20 @@
 
 namespace app\controllers;
 
+use app\models\forms\ProductForm;
 use app\models\Product;
 use app\models\response\ProductResponse;
 use app\models\search\ProductSearch;
-use app\services\ProductService;
-use Override;
-use Yii;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
+use app\services\ProductService;
 
 /**
  * ProductController implements the CRUD actions for Product model.
  */
-class ProductController extends Controller
+class ProductController extends BaseController
 {
-    public $enableCsrfValidation = false;
-    /**
-     * @inheritDoc
-     */
-    public function behaviors()
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
-
     private ProductService $productService;
-    #[Override]
+
     public function init()
     {
         $this->productService = new ProductService();
@@ -58,7 +35,10 @@ class ProductController extends Controller
 
         return [
             'items' => $dataProvider->getModels(),
-            'product active' => $model->find()->active()->all(),
+            'product active' => $model->find()
+                                ->with(['category','media'])
+                                ->active()
+                                ->all(),
             'pagination' => [
                 'total' => $dataProvider->getTotalCount(),
                 'page' => $dataProvider->pagination->page + 1,
@@ -90,25 +70,16 @@ class ProductController extends Controller
     public function actionCreate()
     {
         $model = new ProductResponse();
+        $form = new ProductForm(['scenario' => ProductForm::SCENARIO_CREATE]);
 
-        if ($this->request->isPost) {
-            $result = $this->productService->create($model, $this->request->post());
-            if ($result) {
-                return [
-                    'msg' => 'create sucess',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->productService->create($model, $form)) {
+                return $this->successResponse('Created successfully', ['model' => $result]);
             }
-        } else {
-
-            $model->loadDefaultValues();
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
         }
 
-
-        return [
-            'msg' => 'create error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -121,20 +92,16 @@ class ProductController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $form = new ProductForm(['scenario' => ProductForm::SCENARIO_UPDATE]);
 
-        if ($this->request->isPost) {
-            if ($this->productService->update($model, $this->request->post())) {
-                return [
-                    'msg' => 'Update thành công',
-                    'model' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->productService->update($model, $form)) {
+                return $this->successResponse('Updated successfully', ['model' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
         }
 
-        return [
-            'msg' => 'update error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -149,15 +116,10 @@ class ProductController extends Controller
         $model = $this->findModel($id);
 
         if (!$this->productService->delete($model)) {
-            return [
-                'msg' => 'Delete error'
-            ];
+            return $this->errorResponse($model, 'Delete error');
         }
 
-        return [
-            'msg' => 'Delete sucess',
-            'error' => $model->errors
-        ];
+        return $this->successResponse('Delete success');
     }
 
     /**
@@ -169,10 +131,6 @@ class ProductController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = ProductResponse::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
+        return parent::findModelByClass(ProductResponse::class, $id);
     }
 }

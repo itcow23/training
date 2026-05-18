@@ -2,49 +2,25 @@
 
 namespace app\controllers;
 
+use app\models\forms\OrderForm;
 use app\models\Order;
 use app\models\response\OrderResponse;
 use app\models\search\OrderSearch;
-use app\services\OrderService;
-use Override;
-use Yii;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use yii\web\Response;
+use app\services\OrderService;
 
 
 /**
  * OrderController implements the CRUD actions for Order model.
  */
-class OrderController extends Controller
+class OrderController extends BaseController
 {
-    public $enableCsrfValidation = false;
     public OrderService $orderService;
 
-    #[Override]
     public function init()
     {
-        $this->orderService = new OrderService ();
+        $this->orderService = new OrderService();
         return parent::init();
-    }
-    /**
-     * @inheritDoc
-     */
-    public function behaviors()
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
     }
 
     /**
@@ -83,22 +59,15 @@ class OrderController extends Controller
     public function actionCreate()
     {
         $model = new OrderResponse();
+        $form = new OrderForm(['scenario' => OrderForm::SCENARIO_CREATE]);
 
-        if ($this->request->isPost) {
-            $result =$this->orderService->create($model, $this->request->post());
-            if($result){
-                return [
-                    'msg' => 'create order sucess',
-                    'order' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->orderService->create($model, $form)) {
+                return $this->successResponse('Create order success', ['order' => $result]);
             }
-
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Create error');
         }
-
-        return [
-            'msg' => 'create error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -111,21 +80,16 @@ class OrderController extends Controller
     public function actionUpdateStatus($id)
     {
         $model = $this->findModel($id);
+        $form = new OrderForm(['scenario' => OrderForm::SCENARIO_UPDATE]);
 
-        if ($this->request->isPost) {
-            $result = $this->orderService->updateStatusOrder($model, $this->request->post());
-            if($result){
-                return [
-                    'msg' => 'update status success',
-                    'order' => $model
-                ];
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->orderService->updateStatusOrder($model, $form)) {
+                return $this->successResponse('Update status success', ['order' => $result]);
             }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Update status error');
         }
 
-        return [
-            'msg' => 'update status error',
-            'error' => $model->errors
-        ];
+        return $this->errorResponse($form, 'Invalid request');
     }
 
     /**
@@ -137,9 +101,11 @@ class OrderController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
+        $model = $this->findModel($id);
+        if ($this->orderService->delete($model)) {
+            return $this->successResponse('Delete success');
+        }
+        return $this->errorResponse($model, 'Delete failed');
     }
 
     /**
@@ -151,10 +117,6 @@ class OrderController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = OrderResponse::findOne(['id' => $id])) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
+        return parent::findModelByClass(OrderResponse::class, $id);
     }
 }

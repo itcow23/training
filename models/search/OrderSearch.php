@@ -45,7 +45,9 @@ class OrderSearch extends Order
      */
     public function search($params, $formName = null)
     {
-        $query = OrderResponse::find();
+        $query = OrderResponse::find()->with([
+            'orderDetails.product'
+        ]);;
 
         // add conditions that should always apply here
 
@@ -89,8 +91,8 @@ class OrderSearch extends Order
             ->andFilterWhere(['like', 'phone', $this->phone])
             ->andFilterWhere(['like', 'address', $this->address]);
 
-        if(!empty($params['key'])){
-            $query->andFilterWhere(['like','name',$params['key']]);
+        if (!empty($params['key'])) {
+            $query->andFilterWhere(['like', 'id', $params['key']]);
         }
 
         return $dataProvider;

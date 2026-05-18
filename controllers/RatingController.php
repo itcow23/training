@@ -1,0 +1,53 @@
+<?php
+
+namespace app\controllers;
+
+use app\models\forms\RatingForm;
+use app\models\Rating;
+use yii\web\NotFoundHttpException;
+use app\services\RatingService;
+
+class RatingController extends BaseController
+{
+    private RatingService $ratingService;
+    public function init()
+    {
+        parent::init();
+        $this->ratingService = new RatingService();
+    }
+
+    public function actionIndex()
+    {
+        // Implementation for listing ratings if needed
+        return ['message' => 'Index rating'];
+    }
+
+    /**
+     * Displays a single Rating model.
+     * @param int $id ID
+     * @return string
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionView($id)
+    {
+        return [
+            'model'=>$this->findModel($id)
+        ];
+    }
+
+    public function actionCreate()
+    {
+        $form = new RatingForm(['scenario' => RatingForm::SCENARIO_CREATE]);
+        $model = new Rating();
+
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            if ($result = $this->ratingService->create($model, $form)) {
+                return $this->successResponse('Created successfully', ['model' => $result]);
+            }
+            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
+        }
+
+        return $this->errorResponse($form, 'Invalid request');
+    }
+
+}

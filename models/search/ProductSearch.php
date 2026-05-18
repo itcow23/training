@@ -45,7 +45,7 @@ class ProductSearch extends Product
      */
     public function search($params, $formName = null)
     {
-        $query = ProductResponse::find();
+        $query = ProductResponse::find()->with(['media','category']);
 
         // add conditions that should always apply here
 

@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use Override;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "comment".
@@ -20,6 +22,20 @@ use Yii;
 class Comment extends \yii\db\ActiveRecord
 {
 
+    public $account;
+
+    #[Override]
+    public function behaviors()
+    {
+        return[
+            'timestamps' => [
+                'class' => TimestampBehavior::class,
+                'value' => function(){
+                    return date('Y-m-d H:i:s');
+                }
+            ],
+        ];
+    }
 
     /**
      * {@inheritdoc}
@@ -39,7 +55,7 @@ class Comment extends \yii\db\ActiveRecord
             [['account_id', 'post_id', 'content'], 'required'],
             [['account_id', 'post_id'], 'integer'],
             [['content'], 'string'],
-            [['created_at', 'updated_at'], 'safe'],
+            [['created_at', 'updated_at','account'], 'safe'],
             [['account_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::class, 'targetAttribute' => ['account_id' => 'id']],
             [['post_id'], 'exist', 'skipOnError' => true, 'targetClass' => Post::class, 'targetAttribute' => ['post_id' => 'id']],
         ];
@@ -79,5 +95,7 @@ class Comment extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Post::class, ['id' => 'post_id']);
     }
+
+    
 
 }

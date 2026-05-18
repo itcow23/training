@@ -18,6 +18,16 @@ class PostResponese extends Post
             'content',
             'status',
             'published_at',
+            'comment' => function ($model) {
+                return count($model->comments);
+            },
+            'rating' => function ($model) {
+                return round(
+                    array_sum(array_column($model->ratings, 'score'))
+                        / (count($model->ratings) ?: 1),
+                    1
+                );
+            },
             'media' => function ($model) {
                 return array_map(function ($media) {
                     return [
