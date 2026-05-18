@@ -50,7 +50,8 @@ class Rating extends \yii\db\ActiveRecord
         return [
             [['created_at', 'updated_at'], 'default', 'value' => null],
             [['post_id', 'account_id', 'score'], 'required'],
-            [['post_id', 'account_id', 'score'], 'integer'],
+            [['post_id', 'account_id'], 'integer'],
+            ['score', 'integer', 'min' => 1, 'max' => 5],
             [['created_at', 'updated_at'], 'safe'],
             [['account_id', 'post_id'], 'unique', 'targetAttribute' => ['account_id', 'post_id']],
             [['account_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::class, 'targetAttribute' => ['account_id' => 'id']],

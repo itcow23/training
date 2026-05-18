@@ -32,9 +32,9 @@ class RatingForm extends Model
     public function attributeLabels()
     {
         return [
-            'post_id' => 'Bài viết',
-            'account_id' => 'Tài khoản',
-            'score' => 'Điểm đánh giá',
+            'post_id' => 'Post',
+            'account_id' => 'Account',
+            'score' => 'Score',
         ];
     }
 }

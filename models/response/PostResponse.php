@@ -5,7 +5,7 @@ namespace app\models\response;
 use app\models\Post;
 use Override;
 
-class PostResponese extends Post
+class PostResponse extends Post
 {
     #[Override]
     public function fields()

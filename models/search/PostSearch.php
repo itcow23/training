@@ -4,12 +4,12 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\response\PostResponese;
+use app\models\response\PostResponse;
 
 /**
  * PostSearch represents the model behind the search form of `app\models\Post`.
  */
-class PostSearch extends PostResponese
+class PostSearch extends PostResponse
 {
     public $key;
     public $pageSize = 10;
@@ -43,7 +43,7 @@ class PostSearch extends PostResponese
      */
     public function search($params, $formName = null)
     {
-        $query = PostResponese::find()->with(['comments','ratings','media']);
+        $query = PostResponse::find()->with(['comments','ratings','media']);
 
 
 

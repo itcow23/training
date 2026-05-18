@@ -44,7 +44,7 @@ class CommentController extends BaseController
     public function actionView($id)
     {
         return [
-            'model'=>$this->findModel($id)
+            'model' => $this->findModel($id)
         ];
     }
 
@@ -81,15 +81,14 @@ class CommentController extends BaseController
 
     public function actionUpdate($id)
     {
-       $model = $this->findModel($id);
-       $form = new CommentForm(['scenario' => CommentForm::SCENARIO_UPDATE]);
+        $model = $this->findModel($id);
+        $form = new CommentForm(['scenario' => CommentForm::SCENARIO_UPDATE]);
 
-         if($this->request->isPost && $form->load($this->request->post(), '')) {
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->commentService->update($model, $form)) {
                 return $this->successResponse('Update success', ['model' => $result]);
             }
         }
-
 
         return $this->errorResponse($form, 'Invalid request');
     }

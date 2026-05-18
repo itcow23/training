@@ -3,8 +3,7 @@
 namespace app\controllers;
 
 use app\models\forms\PostForm;
-use app\models\Post;
-use app\models\response\PostResponese;
+use app\models\response\PostResponse;
 use app\models\search\PostSearch;
 use yii\web\NotFoundHttpException;
 use app\services\PostService;
@@ -57,7 +56,7 @@ class PostController extends BaseController
      */
     public function actionCreate()
     {
-        $model = new PostResponese();
+        $model = new PostResponse();
         $form = new PostForm(['scenario' => PostForm::SCENARIO_CREATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
@@ -79,7 +78,7 @@ class PostController extends BaseController
      */
     public function actionUpdate($id)
     {
-         $model = $this->findModel($id);
+        $model = $this->findModel($id);
         $form = new PostForm(['scenario' => PostForm::SCENARIO_UPDATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
@@ -98,6 +97,8 @@ class PostController extends BaseController
         if ($this->request->isPost) {
             $result = $this->postService->updateStatus($model, $this->request->post());
             if ($result) {
+                $model = $this->findModel($id);
+
                 return $this->successResponse('Update success', ['data' => $model]);
             }
         }
@@ -132,6 +133,6 @@ class PostController extends BaseController
      */
     protected function findModel($id)
     {
-        return parent::findModelByClass(PostResponese::class, $id);
+        return parent::findModelByClass(PostResponse::class, $id);
     }
 }

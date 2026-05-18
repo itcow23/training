@@ -39,14 +39,14 @@ class CategoryForm extends Model
         ];
     }
 
-    // public function attributeLabels()
-    // {
-    //     return [
-    //         'id' => 'ID',
-    //         'name' => 'Tên danh mục',
-    //         'slug' => 'Slug',
-    //         'image' => 'Ảnh danh mục',
-    //         'removed_image' => 'Xóa ảnh',
-    //     ];
-    // }
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'name' => 'Name',
+            'slug' => 'Slug',
+            'image' => 'Image',
+            'removed_image' => 'Remove images',
+        ];
+    }
 }

@@ -4,6 +4,7 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use app\models\Category;
 use app\models\response\CategoryResponse;
 
@@ -54,7 +55,7 @@ class CategorySearch extends Category
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => $this->pageSize ?: 1,
+                'pageSize' => $this->pageSize ?: 10,
                 'pageParam' => 'page',
             ],
 
@@ -79,11 +80,14 @@ class CategorySearch extends Category
             'name' => $this->name,
         ]);
 
-       foreach($params as $item){
-            $key = $this->normalizeKeyword($item);
-            $query->orFilterWhere(['like', "REPLACE(name, ' ', '')", $key]);
-       }
-
+        if ($this->key !== null && $this->key !== '') {
+            $key = self::normalizeKeyword((string) $this->key);
+            $query->andFilterWhere([
+                'like',
+                new Expression("REPLACE(LOWER([[name]]), ' ', '')"),
+                $key,
+            ]);
+        }
 
         return $dataProvider;
     }

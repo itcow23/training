@@ -31,7 +31,7 @@ class PostForm extends Model
     public function rules()
     {
         return [
-            [['title', 'content', 'slug', 'category_id'], 'required'],
+            [['title', 'content', 'category_id'], 'required'],
             [['description', 'content'], 'string'],
             [['published_at'], 'safe'],
             [['status', 'category_id'], 'integer'],
@@ -46,15 +46,15 @@ class PostForm extends Model
     public function attributeLabels()
     {
         return [
-            'title' => 'Tiêu đề',
-            'description' => 'Mô tả',
-            'content' => 'Nội dung',
-            'published_at' => 'Ngày xuất bản',
-            'thumbnail' => 'Ảnh đại diện',
-            'status' => 'Trạng thái',
-            'category_id' => 'Danh mục bài viết',
-            'image' => 'Ảnh bài viết',
-            'removed_image' => 'Xóa ảnh',
+            'title' => 'Title',
+            'description' => 'Description',
+            'content' => 'Content',
+            'published_at' => 'Published at',
+            'thumbnail' => 'Thumbnail',
+            'status' => 'Status',
+            'category_id' => 'Category',
+            'image' => 'Images',
+            'removed_image' => 'Remove images',
         ];
     }
 }

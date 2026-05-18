@@ -50,7 +50,10 @@ class OrderService
 
             $transaction->commit();
 
-            return $model;
+            return OrderResponse::find()
+                ->where(['id' => $model->id])
+                ->with(['orderDetails.product'])
+                ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();
             $form->addError('order', $e->getMessage());
@@ -86,7 +89,7 @@ class OrderService
 
     private function calculateDiscount($subtotal, $membershipLevelId)
     {
-        // Ép kiểu về int để đảm bảo match hoạt động chính xác
+        
         return match ((int)$membershipLevelId) {
             1 => $subtotal * 0.1,
             2 => $subtotal * 0.2,
@@ -135,7 +138,10 @@ class OrderService
 
             $transaction->commit();
 
-            return $model;
+            return OrderResponse::find()
+                ->where(['id' => $model->id])
+                ->with(['orderDetails.product'])
+                ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();
             $form->addError('status', $e->getMessage());

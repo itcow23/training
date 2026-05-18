@@ -2,8 +2,14 @@
 
 namespace app\controllers;
 
+use app\models\response\CategoryResponse;
+use app\models\response\OrderResponse;
+use app\models\response\PostCategoryResponse;
+use app\models\response\PostResponse;
+use app\models\response\ProductResponse;
 use Yii;
 use yii\base\Model;
+use yii\db\ActiveRecord;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -12,6 +18,14 @@ use yii\web\Response;
 abstract class BaseController extends Controller
 {
     public $enableCsrfValidation = false;
+
+    private const MODEL_DEFAULT_RELATIONS = [
+        OrderResponse::class => ['orderDetails.product'],
+        PostResponse::class => ['comments', 'ratings', 'media'],
+        ProductResponse::class => ['category', 'media'],
+        CategoryResponse::class => ['products', 'media'],
+        PostCategoryResponse::class => ['posts'],
+    ];
 
     public function behaviors()
     {
@@ -30,9 +44,22 @@ abstract class BaseController extends Controller
         );
     }
 
-    protected function findModelByClass(string $class, $id): Model
+
+    protected function findModelByClass(string $class, $id, ?array $with = null): Model
     {
-        if (($model = $class::findOne(['id' => $id])) !== null) {
+        if (!is_subclass_of($class, ActiveRecord::class, true)) {
+            throw new \InvalidArgumentException('findModelByClass expects an ActiveRecord class name.');
+        }
+
+        $arClass = $class;
+        $query = $arClass::find()->where(['id' => $id]);
+
+        $relations = $with ?? (self::MODEL_DEFAULT_RELATIONS[$arClass] ?? []);
+        if ($relations !== []) {
+            $query->with($relations);
+        }
+
+        if (($model = $query->one()) !== null) {
             return $model;
         }
 

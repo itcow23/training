@@ -73,11 +73,11 @@ class Category extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Tên danh mục',
+            'name' => 'Name',
             'slug' => 'Slug',
-            'image' => 'Ảnh danh mục',
-            'created_at' => 'Ngày tạo',
-            'updated_at' => 'Ngày cập nhật',
+            'image' => 'Image',
+            'created_at' => 'Created at',
+            'updated_at' => 'Updated at',
         ];
     }
 

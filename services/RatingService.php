@@ -15,7 +15,7 @@ class RatingService
         if (!$form->validate()) {
             return false;
         }
-        $transaction = Yii::$app->db->begintransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
 
             $postData = $form->getAttributes(['post_id', 'account_id', 'score']);

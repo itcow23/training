@@ -4,6 +4,7 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\Expression;
 use app\models\PostCategory;
 use app\models\response\PostCategoryResponse;
 
@@ -79,11 +80,14 @@ class PostCategorySearch extends PostCategory
             'name' => $this->name,
         ]);
 
-       foreach($params as $item){
-            $key = $this->normalizeKeyword($item);
-            $query->orFilterWhere(['like', "REPLACE(name, ' ', '')", $key]);
-       }
-
+        if ($this->key !== null && $this->key !== '') {
+            $key = self::normalizeKeyword((string) $this->key);
+            $query->andFilterWhere([
+                'like',
+                new Expression("REPLACE(LOWER([[name]]), ' ', '')"),
+                $key,
+            ]);
+        }
 
         return $dataProvider;
     }

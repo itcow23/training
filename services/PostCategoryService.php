@@ -39,7 +39,10 @@ class PostCategoryService
             }
 
             $transaction->commit();
-            return PostCategoryResponse::findOne($model->id);
+            return PostCategoryResponse::find()
+                ->where(['id' => $model->id])
+                ->with(['posts'])
+                ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -62,7 +65,7 @@ class PostCategoryService
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete product.');
+                throw new RuntimeException('Failed to delete post category.');
             }
             $transaction->commit();
             return true;

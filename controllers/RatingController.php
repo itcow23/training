@@ -50,4 +50,11 @@ class RatingController extends BaseController
         return $this->errorResponse($form, 'Invalid request');
     }
 
+    /**
+     * @throws NotFoundHttpException
+     */
+    protected function findModel($id)
+    {
+        return parent::findModelByClass(Rating::class, $id);
+    }
 }

@@ -4,7 +4,7 @@ namespace app\services;
 
 use app\models\forms\PostForm;
 use app\models\Post;
-use app\models\response\PostResponese;
+use app\models\response\PostResponse;
 use RuntimeException;
 use Throwable;
 use Yii;
@@ -12,7 +12,7 @@ use yii\web\UploadedFile;
 
 class PostService
 {
-    public function create(PostResponese $model, PostForm $form)
+    public function create(PostResponse $model, PostForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -20,7 +20,7 @@ class PostService
         return $this->save($model, $form);
     }
 
-    public function update(PostResponese $model, PostForm $form)
+    public function update(PostResponse $model, PostForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -28,7 +28,7 @@ class PostService
         return $this->save($model, $form);
     }
 
-    private function save(PostResponese $model, PostForm $form)
+    private function save(PostResponse $model, PostForm $form)
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
@@ -41,7 +41,10 @@ class PostService
             }
 
             $transaction->commit();
-            return PostResponese::findOne($model->id);
+            return PostResponse::find()
+                ->where(['id' => $model->id])
+                ->with(['comments', 'ratings', 'media'])
+                ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -49,7 +52,7 @@ class PostService
         }
     }
 
-    private function assignAttributes(PostResponese $model, PostForm $form): void
+    private function assignAttributes(PostResponse $model, PostForm $form): void
     {
         $attributes = $form->getAttributes([
             'category_id', 'title', 'content', 'status', 'description',
@@ -62,12 +65,12 @@ class PostService
         }
     }
 
-    public function delete(PostResponese $model): bool
+    public function delete(PostResponse $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             if (!$model->delete()) {
-                throw new RuntimeException('Failed to delete product.');
+                throw new RuntimeException('Failed to delete post.');
             }
             $transaction->commit();
             return true;

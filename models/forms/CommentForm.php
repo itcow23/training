@@ -36,9 +36,9 @@ class CommentForm extends Model
     public function attributeLabels()
     {
         return [
-            'account_id' => 'Tài khoản',
-            'post_id' => 'Bài viết',
-            'content' => 'Nội dung bình luận',
+            'account_id' => 'Account',
+            'post_id' => 'Post',
+            'content' => 'Content',
         ];
     }
 }

@@ -3,7 +3,6 @@
 namespace app\models;
 
 use Override;
-use Yii;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -62,14 +61,13 @@ class Media extends \yii\db\ActiveRecord
     #[Override]
     public function behaviors()
     {
-        parent::behaviors();
-        return [
+        return array_merge(parent::behaviors(), [
             [
                 'class' => TimestampBehavior::class,
                 'value' => function () {
                     return date('Y-m-d H:i:s');
                 },
             ],
-        ];
+        ]);
     }
 }

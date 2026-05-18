@@ -37,7 +37,7 @@ class PostCategoryForm extends Model
     public function attributeLabels()
     {
         return [
-            'name' => 'Tên danh mục bài viết',
+            'name' => 'Name',
         ];
     }
 }

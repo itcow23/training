@@ -40,7 +40,10 @@ class CategoryService
             }
 
             $transaction->commit();
-            return CategoryResponse::findOne($model->id);
+            return CategoryResponse::find()
+                ->where(['id' => $model->id])
+                ->with(['products', 'media'])
+                ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());

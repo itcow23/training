@@ -22,8 +22,6 @@ use yii\behaviors\TimestampBehavior;
 class Comment extends \yii\db\ActiveRecord
 {
 
-    public $account;
-
     #[Override]
     public function behaviors()
     {
@@ -55,7 +53,7 @@ class Comment extends \yii\db\ActiveRecord
             [['account_id', 'post_id', 'content'], 'required'],
             [['account_id', 'post_id'], 'integer'],
             [['content'], 'string'],
-            [['created_at', 'updated_at','account'], 'safe'],
+            [['created_at', 'updated_at'], 'safe'],
             [['account_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::class, 'targetAttribute' => ['account_id' => 'id']],
             [['post_id'], 'exist', 'skipOnError' => true, 'targetClass' => Post::class, 'targetAttribute' => ['post_id' => 'id']],
         ];

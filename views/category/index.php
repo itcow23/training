@@ -60,7 +60,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'slug',
             'img' => [
-                'label' => 'Ảnh',
+                'label' => 'Image',
                 'format' => 'raw',
                 'value' => function ($model) {
                     $media = $model->getMedia()->all();

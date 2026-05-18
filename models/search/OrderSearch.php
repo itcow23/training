@@ -47,7 +47,7 @@ class OrderSearch extends Order
     {
         $query = OrderResponse::find()->with([
             'orderDetails.product'
-        ]);;
+        ]);
 
         // add conditions that should always apply here
 
@@ -59,7 +59,7 @@ class OrderSearch extends Order
             ],
             'sort' => [
                 'defaultOrder' => [
-                    'created_at' => 'SORT_DESC'
+                    'created_at' => SORT_DESC,
                 ]
             ]
         ]);
