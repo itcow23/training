@@ -155,4 +155,9 @@ class Order extends \yii\db\ActiveRecord
     {
         return $this->hasMany(OrderDetail::class, ['order_id' => 'id']);
     }
+
+    public static function find()
+    {
+        return new query\OrderQuery(get_called_class());
+    }
 }

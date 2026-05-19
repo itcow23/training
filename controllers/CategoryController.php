@@ -35,16 +35,14 @@ class CategoryController extends BaseController
 
         $model = new CategorySearch();
         $dataProvider = $model->search($params);
-        return [
-            'items' => $dataProvider->getModels(),
-
-            'pagination' => [
-                'total' => $dataProvider->getTotalCount(),
-                'page' => $dataProvider->pagination->page + 1,
-                'pageSize' => $dataProvider->pagination->pageSize,
-                'pageCount' => $dataProvider->pagination->getPageCount(),
-            ]
-        ];
+        return $this->listResponse(
+            $dataProvider->getModels(),
+            $dataProvider->getTotalCount(),
+            $dataProvider->pagination->getPage() + 1,
+            $dataProvider->pagination->getPageSize(),
+            $dataProvider->pagination->getPageCount(),
+            'Categories retrieved successfully'
+        );
     }
 
     /**
@@ -56,9 +54,10 @@ class CategoryController extends BaseController
 
     public function actionView($id)
     {
-        return [
-            'model' => $this->findModel($id)
-        ];
+        return $this->successResponse(
+            ['model' => $this->findModel($id)],
+            'Category retrieved successfully'
+        );
     }
 
     /**
@@ -74,12 +73,24 @@ class CategoryController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->categoryService->create($model, $form)) {
-                return $this->successResponse('Created successfully', ['model' => $result]);
+                 return $this->successResponse(
+                    ['model' => $result],
+                    'Category created successfully',
+                    201
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to create category',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+         return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -97,12 +108,23 @@ class CategoryController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->categoryService->update($model, $form)) {
-                return $this->successResponse('Updated successfully', ['model' => $result]);
+                 return $this->successResponse(
+                    ['model' => $result],
+                    'Category updated successfully'
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to update category',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -118,10 +140,18 @@ class CategoryController extends BaseController
         $model = $this->findModel($id);
 
         if (!$this->categoryService->delete($model)) {
-            return $this->errorResponse($model, 'Failed to delete');
+             return $this->errorResponse(
+                $model->hasErrors() ? $model->errors : ['message' => 'Failed to delete'],
+                'Delete failed',
+                400
+            );
         }
 
-        return $this->successResponse('Delete success');
+         return $this->successResponse(
+            [],
+            'Category deleted successfully',
+            204
+        );
     }
 
     /**

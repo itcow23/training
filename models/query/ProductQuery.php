@@ -36,4 +36,9 @@ class ProductQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere(['status' => 1]);
     }
+
+    public function inactive()
+    {
+        return $this->andWhere(['status' => 0]);
+    }
 }

@@ -18,7 +18,6 @@ class RatingController extends BaseController
 
     public function actionIndex()
     {
-        // Implementation for listing ratings if needed
         return ['message' => 'Index rating'];
     }
 
@@ -30,9 +29,10 @@ class RatingController extends BaseController
      */
     public function actionView($id)
     {
-        return [
-            'model'=>$this->findModel($id)
-        ];
+        return $this->successResponse(
+            ['model' => $this->findModel($id)],
+            'Rating retrieved successfully'
+        );
     }
 
     public function actionCreate()
@@ -42,12 +42,24 @@ class RatingController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->ratingService->create($model, $form)) {
-                return $this->successResponse('Created successfully', ['model' => $result]);
+                return $this->successResponse(
+                    ['model' => $result],
+                    'Rating created successfully',
+                    201
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to create rating',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**

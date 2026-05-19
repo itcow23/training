@@ -31,4 +31,29 @@ class OrderQuery extends \yii\db\ActiveQuery
     {
         return parent::one($db);
     }
+
+    public function pending()
+    {
+        return $this->andWhere(['status' => 1]);
+    }
+
+    public function confirm()
+    {
+        return $this->andWhere(['status' => 2]);
+    }
+
+    public function shipping()
+    {
+        return $this->andWhere(['status' => 3]);
+    }
+
+    public function completed()
+    {
+        return $this->andWhere(['status' => 4]);
+    }
+
+    public function cancel()
+    {
+        return $this->andWhere(['status' => 0]);
+    }
 }

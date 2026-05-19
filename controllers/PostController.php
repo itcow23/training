@@ -13,7 +13,7 @@ use app\services\PostService;
  */
 class PostController extends BaseController
 {
-    public $postService;
+    private PostService $postService;
 
     public function init()
     {
@@ -31,9 +31,14 @@ class PostController extends BaseController
         $searchModel = new PostSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
-        return [
-            'data' => $dataProvider->getModels()
-        ];
+        return $this->listResponse(
+            $dataProvider->getModels(),
+            $dataProvider->getTotalCount(),
+            $dataProvider->pagination->getPage() + 1,
+            $dataProvider->pagination->getPageSize(),
+            $dataProvider->pagination->getPageCount(),
+            'Posts retrieved successfully'
+        );
     }
 
     /**
@@ -44,9 +49,10 @@ class PostController extends BaseController
      */
     public function actionView($id)
     {
-        return [
-            'model' => $this->findModel($id),
-        ];
+        return $this->successResponse(
+            ['model' => $this->findModel($id)],
+            'Post retrieved successfully'
+        );
     }
 
     /**
@@ -61,12 +67,24 @@ class PostController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->postService->create($model, $form)) {
-                return $this->successResponse('Created successfully', ['model' => $result]);
+                return $this->successResponse(
+                    ['model' => $result],
+                    'Post created successfully',
+                    201
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to create post',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -83,12 +101,23 @@ class PostController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->postService->update($model, $form)) {
-                return $this->successResponse('Updated successfully', ['model' => $result]);
+                return $this->successResponse(
+                    ['model' => $result],
+                    'Post updated successfully'
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to update post',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     public function actionUpdateStatus($id)
@@ -99,11 +128,18 @@ class PostController extends BaseController
             if ($result) {
                 $model = $this->findModel($id);
 
-                return $this->successResponse('Update success', ['data' => $model]);
+                return $this->successResponse(
+                    ['model' => $model],
+                    'Post status updated successfully'
+                );
             }
         }
 
-        return $this->errorResponse($model, 'Update error');
+        return $this->errorResponse(
+            $model,
+            'Update error',
+            400
+        );
     }
 
     /**
@@ -118,17 +154,25 @@ class PostController extends BaseController
         $model = $this->findModel($id);
 
         if (!$this->postService->delete($model)) {
-            return $this->errorResponse($model, 'Delete error');
+            return $this->errorResponse(
+                $model->hasErrors() ? $model->errors : ['message' => 'Failed to delete'],
+                'Delete failed',
+                400
+            );
         }
 
-        return $this->successResponse('Delete success');
+        return $this->successResponse(
+            [],
+            'Post deleted successfully',
+            204
+        );
     }
 
     /**
      * Finds the Post model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID
-     * @return Post the loaded model
+     * @return PostResponse the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)

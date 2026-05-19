@@ -31,21 +31,15 @@ class ProductController extends BaseController
     {
         $searchModel = new ProductSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-        $model = new ProductResponse();
 
-        return [
-            'items' => $dataProvider->getModels(),
-            'product active' => $model->find()
-                                ->with(['category','media'])
-                                ->active()
-                                ->all(),
-            'pagination' => [
-                'total' => $dataProvider->getTotalCount(),
-                'page' => $dataProvider->pagination->page + 1,
-                'pageSize' => $dataProvider->pagination->pageSize,
-                'pageCount' => $dataProvider->pagination->getPageCount(),
-            ]
-        ];
+        return $this->listResponse(
+            $dataProvider->getModels(),
+            $dataProvider->getTotalCount(),
+            $dataProvider->pagination->getPage() + 1,
+            $dataProvider->pagination->getPageSize(),
+            $dataProvider->pagination->getPageCount(),
+            'Products retrieved successfully'
+        );
     }
 
     /**
@@ -56,10 +50,19 @@ class ProductController extends BaseController
      */
     public function actionView($id)
     {
+        return $this->successResponse(
+            ['model' => $this->findModel($id)],
+            'Product retrieved successfully'
+        );
+    }
 
-        return [
-            'model' => $this->findModel($id),
-        ];
+    public function actionListInactive()
+    {
+        $models = ProductResponse::find()->inactive()->all();
+        return $this->successResponse(
+            ['items' => $models],
+            'Inactive products retrieved successfully'
+        );
     }
 
     /**
@@ -74,12 +77,24 @@ class ProductController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->productService->create($model, $form)) {
-                return $this->successResponse('Created successfully', ['model' => $result]);
+                return $this->successResponse(
+                    ['model' => $result],
+                    'Product created successfully',
+                    201
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to create');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to create product',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -96,12 +111,23 @@ class ProductController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->productService->update($model, $form)) {
-                return $this->successResponse('Updated successfully', ['model' => $result]);
+                return $this->successResponse(
+                    ['model' => $result],
+                    'Product updated successfully'
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Failed to update');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to update product',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -116,10 +142,18 @@ class ProductController extends BaseController
         $model = $this->findModel($id);
 
         if (!$this->productService->delete($model)) {
-            return $this->errorResponse($model, 'Delete error');
+            return $this->errorResponse(
+                $model->hasErrors() ? $model->errors : ['message' => 'Failed to delete'],
+                'Delete failed',
+                400
+            );
         }
 
-        return $this->successResponse('Delete success');
+        return $this->successResponse(
+            [],
+            'Product deleted successfully',
+            204
+        );
     }
 
     /**

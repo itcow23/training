@@ -66,18 +66,53 @@ abstract class BaseController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
 
-    protected function successResponse(string $message = 'success', array $data = []): array
+     protected function successResponse(array $data = [], string $message = 'Success', int $statusCode = 200): array
     {
-        return array_merge(['msg' => $message], $data);
+        Yii::$app->response->statusCode = $statusCode;
+
+        return [
+            'success' => true,
+            'message' => $message,
+            'data' => $data,
+        ];
     }
 
-    protected function errorResponse($data, string $message = 'error'): array
+    protected function errorResponse($errors, string $message = 'Error', int $statusCode = 400): array
     {
+        Yii::$app->response->statusCode = $statusCode;
+
+        $errorData = [];
+        if (is_object($errors) && isset($errors->errors)) {
+            $errorData = $errors->errors;
+        } elseif (is_array($errors)) {
+            $errorData = $errors;
+        } elseif (is_string($errors)) {
+            $errorData = [$errors];
+        }
+
         return [
-            'msg' => $message,
-            'error' => is_object($data) && isset($data->errors)
-                ? $data->errors
-                : $data,
+            'success' => false,
+            'message' => $message,
+            'errors' => $errorData,
+        ];
+    }
+
+    protected function listResponse(array $items, int $total, int $page, int $pageSize, int $pageCount, string $message = 'Success'): array
+    {
+        Yii::$app->response->statusCode = 200;
+
+        return [
+            'success' => true,
+            'message' => $message,
+            'data' => $items,
+            'meta' => [
+                'pagination' => [
+                    'total' => $total,
+                    'page' => $page,
+                    'pageSize' => $pageSize,
+                    'pageCount' => $pageCount,
+                ],
+            ],
         ];
     }
 }

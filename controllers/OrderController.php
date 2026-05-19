@@ -8,7 +8,7 @@ use app\models\response\OrderResponse;
 use app\models\search\OrderSearch;
 use yii\web\NotFoundHttpException;
 use app\services\OrderService;
-
+use yii\data\ActiveDataProvider;
 
 /**
  * OrderController implements the CRUD actions for Order model.
@@ -32,10 +32,14 @@ class OrderController extends BaseController
     {
         $searchModel = new OrderSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-
-        return[
-            'data' => $dataProvider->getModels()
-        ];
+        return $this->listResponse(
+            $dataProvider->getModels(),
+            $dataProvider->getTotalCount(),
+            $dataProvider->pagination->getPage() + 1,
+            $dataProvider->pagination->getPageSize(),
+            $dataProvider->pagination->getPageCount(),
+            'Orders retrieved successfully'
+        );
     }
 
     /**
@@ -46,9 +50,58 @@ class OrderController extends BaseController
      */
     public function actionView($id)
     {
-        return [
-            'data' => $this->findModel($id),
-        ];
+        return $this->successResponse(
+            ['order' => $this->findModel($id)],
+            'Order retrieved successfully'
+        );
+    }
+
+    public function actionFilter($status)
+    {
+        $query = OrderResponse::find();
+
+        switch ($status) {
+            case 1:
+                $query->pending();
+                break;
+
+            case 2:
+                $query->confirm();
+                break;
+
+            case 3:
+                $query->shipping();
+                break;
+
+            case 4:
+                $query->completed();
+                break;
+
+            case 0:
+                $query->cancel();
+                break;
+        }
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 10,
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    'id' => SORT_DESC,
+                ],
+            ],
+        ]);
+
+        return $this->listResponse(
+            $dataProvider->getModels(),
+            $dataProvider->getTotalCount(),
+            $dataProvider->pagination->getPage() + 1,
+            $dataProvider->pagination->getPageSize(),
+            $dataProvider->pagination->getPageCount(),
+            'Orders retrieved successfully'
+        );
     }
 
     /**
@@ -63,11 +116,24 @@ class OrderController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->orderService->create($model, $form)) {
-                return $this->successResponse('Create order success', ['order' => $result]);
+                return $this->successResponse(
+                    ['order' => $result],
+                    'Order created successfully',
+                    201
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Create error');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to create order',
+                422
+            );
         }
-        return $this->errorResponse($form, 'Invalid request');
+
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -84,12 +150,23 @@ class OrderController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->orderService->updateStatusOrder($model, $form)) {
-                return $this->successResponse('Update status success', ['order' => $result]);
+                return $this->successResponse(
+                    ['order' => $result],
+                    'Order status updated successfully'
+                );
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Update status error');
+            return $this->errorResponse(
+                $form->hasErrors() ? $form : $model,
+                'Failed to update order status',
+                422
+            );
         }
 
-        return $this->errorResponse($form, 'Invalid request');
+        return $this->errorResponse(
+            ['message' => 'POST request required'],
+            'Invalid request',
+            400
+        );
     }
 
     /**
@@ -103,9 +180,18 @@ class OrderController extends BaseController
     {
         $model = $this->findModel($id);
         if ($this->orderService->delete($model)) {
-            return $this->successResponse('Delete success');
+            return $this->successResponse(
+                [],
+                'Order deleted successfully',
+                204
+            );
         }
-        return $this->errorResponse($model, 'Delete failed');
+
+        return $this->errorResponse(
+            $model,
+            'Delete failed',
+            400
+        );
     }
 
     /**
