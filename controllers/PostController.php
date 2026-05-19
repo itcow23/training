@@ -123,8 +123,9 @@ class PostController extends BaseController
     public function actionUpdateStatus($id)
     {
         $model = $this->findModel($id);
-        if ($this->request->isPost) {
-            $result = $this->postService->updateStatus($model, $this->request->post());
+        $form = new PostForm(['scenario' => PostForm::SCENARIO_UPDATE_STATUS]);
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            $result = $this->postService->updateStatus($model, $form);
             if ($result) {
                 $model = $this->findModel($id);
 
@@ -164,7 +165,6 @@ class PostController extends BaseController
         return $this->successResponse(
             [],
             'Post deleted successfully',
-            204
         );
     }
 

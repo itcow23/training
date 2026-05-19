@@ -183,7 +183,6 @@ class OrderController extends BaseController
             return $this->successResponse(
                 [],
                 'Order deleted successfully',
-                204
             );
         }
 

@@ -34,7 +34,7 @@ class CategoryController extends BaseController
         $params = $this->request->queryParams;
 
         $model = new CategorySearch();
-        $dataProvider = $model->search($params);
+        $dataProvider = $model->search($params,'');
         return $this->listResponse(
             $dataProvider->getModels(),
             $dataProvider->getTotalCount(),
@@ -71,7 +71,7 @@ class CategoryController extends BaseController
         $form = new CategoryForm(['scenario' => CategoryForm::SCENARIO_CREATE]);
         $model = new CategoryResponse();
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+        if ($form->load($this->request->post(), '')) {
             if ($result = $this->categoryService->create($model, $form)) {
                  return $this->successResponse(
                     ['model' => $result],
@@ -106,7 +106,7 @@ class CategoryController extends BaseController
         $model = $this->findModel($id);
         $form = new CategoryForm(['scenario' => CategoryForm::SCENARIO_UPDATE, 'id' => $model->id]);
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
+        if ($form->load($this->request->post(), '')) {
             if ($result = $this->categoryService->update($model, $form)) {
                  return $this->successResponse(
                     ['model' => $result],
@@ -149,8 +149,7 @@ class CategoryController extends BaseController
 
          return $this->successResponse(
             [],
-            'Category deleted successfully',
-            204
+            'Category deleted successfully'
         );
     }
 

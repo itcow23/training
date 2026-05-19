@@ -125,7 +125,6 @@ class CommentController extends BaseController
                 return $this->successResponse(
                     [],
                     'Comment deleted successfully',
-                    204
                 );
             }
             return $this->errorResponse($form->hasErrors() ? $form : $model, 'Delete error', 400);

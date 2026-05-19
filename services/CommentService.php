@@ -27,7 +27,7 @@ class CommentService
             }
 
             $transaction->commit();
-            return true;
+            return $model;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());

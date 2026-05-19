@@ -34,7 +34,7 @@ class PostCategoryController extends BaseController
         $params = $this->request->queryParams;
 
         $model = new PostCategorySearch();
-        $dataProvider = $model->search($params);
+        $dataProvider = $model->search($params,'');
         return $this->listResponse(
             $dataProvider->getModels(),
             $dataProvider->getTotalCount(),
@@ -151,7 +151,6 @@ class PostCategoryController extends BaseController
         return $this->successResponse(
             [],
             'Post category deleted successfully',
-            204
         );
     }
 

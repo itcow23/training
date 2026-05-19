@@ -81,28 +81,28 @@ class PostService
         }
     }
 
-    public function updateStatus($model, $postData)
+    public function updateStatus($model, $form)
     {
-        $transaction = Yii::$app->db->beginTransaction();
+       if (!$form->validate()) {
+            return false;
+        }
+       $transaction = Yii::$app->db->beginTransaction();
         try {
-            if (!$model->load($postData, '')) {
-                throw new RuntimeException('Load error');
-            }
-
-            if ($model->status == Post::STATUS_PUBLISHED && empty($model->published_at)) {
-                $model->published_at = date('Y-m-d H:i:s');
-            }
-
+           $model->setAttributes($form->getAttributes(['status']), false);
 
             if (!$model->save()) {
-                throw new RuntimeException('Save error');
+                $transaction->rollBack();
+                return false;
             }
 
             $transaction->commit();
-            return true;
-        } catch (\Throwable $e) {
+            return PostResponse::find()
+                ->where(['id' => $model->id])
+                ->with(['comments', 'ratings', 'media'])
+                ->one();
+        } catch (Throwable $e) {
             $transaction->rollBack();
-            Yii::error($e->getMessage());
+            $model->addError('error', $e->getMessage());
             return false;
         }
     }
