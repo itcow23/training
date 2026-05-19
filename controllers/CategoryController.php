@@ -71,7 +71,7 @@ class CategoryController extends BaseController
         $form = new CategoryForm(['scenario' => CategoryForm::SCENARIO_CREATE]);
         $model = new CategoryResponse();
 
-        if ($form->load($this->request->post(), '')) {
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->categoryService->create($model, $form)) {
                  return $this->successResponse(
                     ['model' => $result],
@@ -106,7 +106,7 @@ class CategoryController extends BaseController
         $model = $this->findModel($id);
         $form = new CategoryForm(['scenario' => CategoryForm::SCENARIO_UPDATE, 'id' => $model->id]);
 
-        if ($form->load($this->request->post(), '')) {
+        if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($result = $this->categoryService->update($model, $form)) {
                  return $this->successResponse(
                     ['model' => $result],
