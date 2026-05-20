@@ -2,12 +2,11 @@
 
 namespace app\models\forms;
 
-use yii\base\Model;
+use app\models\forms\BaseForm;
 
-class ProductForm extends Model
+class ProductForm extends BaseForm
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
+
 
     public $id;
     public $category_id;
@@ -21,23 +20,32 @@ class ProductForm extends Model
 
     public function scenarios()
     {
-        $scenarios = Model::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount','image'];
-        $scenarios[self::SCENARIO_UPDATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount','image', 'removed_image'];
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount', 'image'];
+        $scenarios[self::SCENARIO_UPDATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount', 'image', 'removed_image'];
         return $scenarios;
     }
 
     public function rules()
     {
-        return [
-            [['category_id', 'name', 'price'], 'required'],
+        $rules = [
+            [['category_id', 'name', 'price'], 'required', 'on' => self::SCENARIO_CREATE],
             [['category_id', 'status', 'discount'], 'integer'],
+            [['status'], 'default', 'value' => 1],
+            [['name'], 'string', 'max' => 255],
             [['price'], 'number'],
             [['description'], 'string'],
-            [['status'], 'default', 'value' => 1],
-            [['image'], 'file', 'skipOnEmpty' => true, 'maxFiles' => 10],
-            [['removed_image'], 'safe', 'on' => self::SCENARIO_UPDATE],
-            [['removed_image'], 'each', 'rule' => ['integer']],
         ];
+
+
+        $rules = array_merge(
+            $rules,
+            $this->imageRules('image', 10),
+            $this->removedImageRules('removed_image')
+        );
+
+
+
+        return $rules;
     }
 }

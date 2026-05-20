@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\behaviors\SlugBehavior;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "tag".
@@ -17,6 +19,20 @@ use Yii;
 class Tag extends \yii\db\ActiveRecord
 {
 
+    public function behaviors()
+    {
+        return [
+            'timestamp' => [
+                'class' => TimestampBehavior::class,
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
+                }
+            ],
+            'slug' => [
+                'class' => SlugBehavior::class,
+            ]
+        ];
+    }
 
     /**
      * {@inheritdoc}

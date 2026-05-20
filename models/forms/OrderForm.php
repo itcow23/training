@@ -2,12 +2,10 @@
 
 namespace app\models\forms;
 
-use yii\base\Model;
+use app\models\forms\BaseForm;
 
-class OrderForm extends Model
+class OrderForm extends BaseForm
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
 
     public $account_id;
     public $membership_level_id;
@@ -26,7 +24,7 @@ class OrderForm extends Model
 
     public function scenarios()
     {
-        $scenarios = Model::scenarios();
+        $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['account_id', 'membership_level_id', 'name', 'email', 'phone', 'address', 'discount_amount', 'subtotal', 'final_total', 'pay', 'status', 'products'];
         $scenarios[self::SCENARIO_UPDATE] = ['status'];
         return $scenarios;
@@ -38,8 +36,8 @@ class OrderForm extends Model
             [['account_id', 'name', 'email', 'phone', 'address', 'pay', 'products'], 'required'],
             [['account_id', 'membership_level_id', 'pay', 'status'], 'integer'],
             [['discount_amount', 'subtotal', 'final_total'], 'number'],
-            [['name', 'email', 'phone', 'address'], 'string', 'max' => 255],
             [['discount_amount', 'subtotal', 'final_total'], 'default', 'value' => 0],
+            [['name', 'email', 'phone', 'address'], 'string', 'max' => 255],
             [['status'], 'default', 'value' => 1],
             ['products', 'validateProducts', 'on' => self::SCENARIO_CREATE],
         ];

@@ -55,7 +55,7 @@ class Order extends \yii\db\ActiveRecord
             if (empty($this->id)) {
 
                 $date = date('Ymd');
-                $prefix = '#ORD' . $date;
+                $prefix = 'ORD' . $date;
 
                 $lastOrder = self::find()
                     ->where(['like', 'id', $prefix . '%', false])

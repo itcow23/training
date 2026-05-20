@@ -53,10 +53,17 @@ class ProductService
 
     private function assignAttributes(ProductResponse $model, ProductForm $form): void
     {
-        $attributes = $form->getAttributes([
-            'category_id', 'name', 'price', 'status', 'description', 'discount',
-        ]);
-
+        $attributes = array_filter(
+            $form->getAttributes([
+                'category_id',
+                'name',
+                'price',
+                'status',
+                'description',
+                'discount',
+            ]),
+            fn($value) => $value !== null
+        );
         $model->setAttributes($attributes, false);
 
         if ($form->removed_image !== null && is_array($form->removed_image)) {

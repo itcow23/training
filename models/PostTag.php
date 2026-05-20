@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use Override;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "post_tag".
@@ -20,6 +22,19 @@ class PostTag extends \yii\db\ActiveRecord
 {
 
 
+    #[Override]
+    public function behaviors()
+    {
+        return [
+            parent::behaviors(),
+            'timestamp' => [
+                'class' => TimestampBehavior::class,
+                'value' => function () {
+                    return date('Y-m-d H:i:s');
+                }
+            ]
+        ];
+    }
     /**
      * {@inheritdoc}
      */

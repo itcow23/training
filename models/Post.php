@@ -158,6 +158,11 @@ class Post extends \yii\db\ActiveRecord
         return $this->hasMany(PostTag::class, ['post_id' => 'id']);
     }
 
+    public function getTags()
+    {
+        return $this->hasMany(Tag::class, ['id' => 'tag_id'])->viaTable('post_tag', ['post_id' => 'id']);
+    }
+
     /**
      * Gets query for [[Ratings]].
      *

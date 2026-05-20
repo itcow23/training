@@ -2,22 +2,20 @@
 
 namespace app\models\forms;
 
-use app\models\Category;
+use app\models\Tag;
 use app\models\forms\BaseForm;
 
-class CategoryForm extends BaseForm
+class TagForm extends BaseForm
 {
 
     public $id;
     public $name;
-    public $image;
-    public $removed_image;
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['name', 'image'];
-        $scenarios[self::SCENARIO_UPDATE] = ['id', 'name', 'image', 'removed_image'];
+        $scenarios[self::SCENARIO_CREATE] = ['name'];
+        $scenarios[self::SCENARIO_UPDATE] = ['name'];
         return $scenarios;
     }
 
@@ -30,9 +28,7 @@ class CategoryForm extends BaseForm
 
         $rules = array_merge(
             $base,
-            $this->uniqueNameRule('name', Category::class),
-            $this->imageRules('image', 10),
-            $this->removedImageRules('removed_image')
+            $this->uniqueNameRule('name', Tag::class)
         );
 
         return $rules;
@@ -44,8 +40,6 @@ class CategoryForm extends BaseForm
             'id' => 'ID',
             'name' => 'Name',
             'slug' => 'Slug',
-            'image' => 'Image',
-            'removed_image' => 'Remove images',
         ];
     }
 }

@@ -2,12 +2,10 @@
 
 namespace app\models\forms;
 
-use yii\base\Model;
+use app\models\forms\BaseForm;
 
-class RatingForm extends Model
+class RatingForm extends BaseForm
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
 
     public $post_id;
     public $account_id;
@@ -15,7 +13,7 @@ class RatingForm extends Model
 
     public function scenarios()
     {
-        $scenarios = Model::scenarios();
+        $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['post_id', 'account_id', 'score'];
         return $scenarios;
     }

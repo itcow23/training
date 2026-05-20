@@ -2,22 +2,17 @@
 
 namespace app\models\forms;
 
-use yii\base\Model;
+use app\models\forms\BaseForm;
 
-class CommentForm extends Model
+class CommentForm extends BaseForm
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
-    const SCENARIO_DELETE = 'delete';
-
-
     public $account_id;
     public $post_id;
     public $content;
 
     public function scenarios()
     {
-        $scenarios = Model::scenarios();
+        $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['account_id', 'post_id', 'content'];
         $scenarios[self::SCENARIO_UPDATE] = ['account_id', 'post_id', 'content'];
         $scenarios[self::SCENARIO_DELETE] = ['account_id'];

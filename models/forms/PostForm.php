@@ -2,13 +2,9 @@
 
 namespace app\models\forms;
 
-use yii\base\Model;
 
-class PostForm extends Model
+class PostForm extends BaseForm
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
-    const SCENARIO_UPDATE_STATUS = 'update_status';
     public $title;
     public $description;
     public $content;
@@ -18,30 +14,42 @@ class PostForm extends Model
     public $category_id;
     public $image;
     public $removed_image;
+    public $add_tag;
+    public $removed_tag;
 
     public function scenarios()
     {
-        $scenarios = Model::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'thumbnail', 'status', 'category_id', 'image'];
-        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'thumbnail', 'status', 'category_id', 'image', 'removed_image'];
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'thumbnail', 'status', 'category_id', 'image', 'add_tag'];
+        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'thumbnail', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'removed_tag'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
         return $scenarios;
     }
 
     public function rules()
     {
-        return [
-            [['title', 'content', 'category_id'], 'required'],
+
+        $base = [
+            [['title', 'content', 'category_id'], 'required', 'on' => self::SCENARIO_CREATE],
             [['description', 'content'], 'string'],
             [['published_at'], 'safe'],
             [['status', 'category_id'], 'integer'],
             [['title', 'thumbnail'], 'string', 'max' => 255],
             [['status'], 'default', 'value' => 0],
-            [['image'], 'file', 'skipOnEmpty' => true, 'maxFiles' => 10],
-            [['removed_image'], 'safe', 'on' => self::SCENARIO_UPDATE],
-            [['removed_image'], 'each', 'rule' => ['integer']],
+            [['removed_image', 'add_tag', 'removed_tag'], 'validateArray'],
+            [['add_tag', 'removed_tag'], 'each', 'rule' => ['integer']],
         ];
+
+        $rules = array_merge(
+            $base,
+            $this->imageRules('image', 10),
+            $this->removedImageRules('removed_image')
+        );
+
+        return $rules;
     }
+
+
 
     public function attributeLabels()
     {
@@ -55,6 +63,8 @@ class PostForm extends Model
             'category_id' => 'Category',
             'image' => 'Images',
             'removed_image' => 'Remove images',
+            'add_tag' => 'Add tags',
+            'removed_tag' => 'Remove tags',
         ];
     }
 }

@@ -37,7 +37,15 @@ class PostResponse extends Post
                         'path' => $media->filepath
                     ];
                 }, $model->media);
-            }
+            },
+            'tags' => function ($model) {
+                return array_map(function ($tag) {
+                    return [
+                        'id' => $tag->id,
+                        'name' => $tag->name
+                    ];
+                }, $model->tags);
+            },
         ];
     }
 }
