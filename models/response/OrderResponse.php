@@ -12,32 +12,29 @@ class OrderResponse extends Order
     {
         return [
             'id',
+            'order_code',
             'account_id',
             'membership_level_id',
-            'name',
-            'email',
-            'phone',
-            'address',
-            'discount_amount',
+            'discount',
             'subtotal',
+            'shipping_fee',
             'final_total',
-            'pay',
+            'pay_method',
             'status',
             'created_at',
             'detail' => function ($model) {
-                return array_map(function ($orderDetail) {
-                    $product = $orderDetail->product;
+                return array_map(function ($orderItem) {
+                    $product = $orderItem->product;
                     return [
-                        'order_id' => $orderDetail->order_id,
-                        'product' =>
-                            [
-                                'name' => $product->name,
-                                'price' => $product->price,
-                                'quantity' => $orderDetail->quantity,
-                            ],
-                        'total_price' => $orderDetail->total_price
+                        'order_id' => $orderItem->order_id,
+                        'product' => [
+                            'name' => $product->name,
+                            'unit_price' => $orderItem->unit_price,
+                            'quantity' => $orderItem->quantity,
+                        ],
+                        'total_price' => $orderItem->total_price
                     ];
-                }, $model->orderDetails);
+                }, $model->orderItems);
             }
         ];
     }

@@ -6,12 +6,13 @@ use Override;
 use yii\behaviors\TimestampBehavior;
 
 /**
- * This is the model class for table "order_detail".
- *
+ * This is the model class for table "order_items".
+
  * @property int $id
- * @property string $order_id
+ * @property int $order_id
  * @property int $product_id
  * @property int $quantity
+ * @property float $unit_price
  * @property float $total_price
  * @property string|null $created_at
  * @property string|null $updated_at
@@ -19,7 +20,7 @@ use yii\behaviors\TimestampBehavior;
  * @property Order $order
  * @property Product $product
  */
-class OrderDetail extends \yii\db\ActiveRecord
+class OrderItem extends \yii\db\ActiveRecord
 {
 
 
@@ -41,7 +42,7 @@ class OrderDetail extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'order_detail';
+        return 'order_items';
     }
 
     /**
@@ -51,11 +52,11 @@ class OrderDetail extends \yii\db\ActiveRecord
     {
         return [
             [['created_at', 'updated_at'], 'default', 'value' => null],
-            [['order_id', 'product_id', 'quantity', 'total_price'], 'required'],
+            [['order_id', 'product_id', 'quantity', 'unit_price', 'total_price'], 'required'],
             [['product_id', 'quantity'], 'integer'],
-            [['total_price'], 'number'],
+            [['unit_price', 'total_price'], 'number'],
             [['created_at', 'updated_at'], 'safe'],
-            [['order_id'], 'string', 'max' => 255],
+            [['order_id'], 'integer'],
             [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => Order::class, 'targetAttribute' => ['order_id' => 'id']],
             [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => Product::class, 'targetAttribute' => ['product_id' => 'id']],
         ];

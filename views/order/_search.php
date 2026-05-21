@@ -21,9 +21,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'membership_level_id') ?>
 
-    <?= $form->field($model, 'name') ?>
+    <?= $form->field($model, 'shipping_name') ?>
 
-    <?= $form->field($model, 'email') ?>
+    <?= $form->field($model, 'shipping_email') ?>
 
     <?php // echo $form->field($model, 'phone') ?>
 

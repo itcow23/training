@@ -12,27 +12,29 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'id')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'order_code')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'account_id')->textInput() ?>
 
     <?= $form->field($model, 'membership_level_id')->textInput() ?>
 
-    <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'shipping_name')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
+    <?= $form->field($model, 'shipping_email')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'phone')->textarea(['rows' => 6]) ?>
+    <?= $form->field($model, 'shipping_phone')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'address')->textarea(['rows' => 6]) ?>
+    <?= $form->field($model, 'shipping_address')->textarea(['rows' => 6]) ?>
 
-    <?= $form->field($model, 'discount_amount')->textInput() ?>
+    <?= $form->field($model, 'discount')->textInput() ?>
 
     <?= $form->field($model, 'subtotal')->textInput() ?>
 
+    <?= $form->field($model, 'shipping_fee')->textInput() ?>
+
     <?= $form->field($model, 'final_total')->textInput() ?>
 
-    <?= $form->field($model, 'pay')->textInput() ?>
+    <?= $form->field($model, 'pay_method')->textInput() ?>
 
     <?= $form->field($model, 'status')->textInput() ?>
 

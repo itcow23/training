@@ -11,10 +11,10 @@ use app\models\Product;
 
 class OrderService
 {
-    private OrderDetailService $orderDetailService;
+    private OrderItemService $orderItemService;
     public function __construct()
     {
-        $this->orderDetailService = new OrderDetailService();
+        $this->orderItemService = new OrderItemService();
     }
 
     public function create(OrderResponse $model, OrderForm $form)
@@ -39,20 +39,22 @@ class OrderService
             $discountAmount = $this->calculateDiscount($subtotal, $model->membership_level_id);
 
             $model->subtotal = $subtotal;
-            $model->discount_amount = $discountAmount;
-            $model->final_total = $subtotal - $discountAmount;
+            $model->discount = $discountAmount;
+            $model->shipping_fee = $form->shipping_fee ?? 0;
+            $model->final_total = $subtotal - $discountAmount + $model->shipping_fee;
+            $model->pay_method = $form->pay_method;
 
             if (!$model->save()) {
                 throw new RuntimeException(json_encode($model->errors));
             }
 
-            $this->orderDetailService->create($model->id, $productList, $form->products);
+            $this->orderItemService->create($model->id, $productList, $form->products);
 
             $transaction->commit();
 
             return OrderResponse::find()
                 ->where(['id' => $model->id])
-                ->with(['orderDetails.product'])
+                ->with(['orderItems.product'])
                 ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();
@@ -89,7 +91,7 @@ class OrderService
 
     private function calculateDiscount($subtotal, $membershipLevelId)
     {
-        
+
         return match ((int)$membershipLevelId) {
             1 => $subtotal * 0.1,
             2 => $subtotal * 0.2,
@@ -140,7 +142,7 @@ class OrderService
 
             return OrderResponse::find()
                 ->where(['id' => $model->id])
-                ->with(['orderDetails.product'])
+                ->with(['orderItems.product'])
                 ->one();
         } catch (Throwable $e) {
             $transaction->rollBack();

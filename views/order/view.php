@@ -6,7 +6,7 @@ use yii\widgets\DetailView;
 /** @var yii\web\View $this */
 /** @var app\models\Order $model */
 
-$this->title = $model->name;
+$this->title = $model->shipping_name;
 $this->params['breadcrumbs'][] = ['label' => 'Orders', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 \yii\web\YiiAsset::register($this);
@@ -30,16 +30,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'attributes' => [
             'id',
+            'order_code',
             'account_id',
             'membership_level_id',
-            'name',
-            'email:email',
-            'phone:ntext',
-            'address:ntext',
-            'discount_amount',
+            'shipping_name',
+            'shipping_email:email',
+            'shipping_phone',
+            'shipping_address:ntext',
+            'discount',
             'subtotal',
+            'shipping_fee',
             'final_total',
-            'pay',
+            'pay_method',
             'status',
             'created_at',
             'updated_at',

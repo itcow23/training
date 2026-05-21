@@ -16,7 +16,6 @@ use yii\behaviors\TimestampBehavior;
  * @property string|null $description
  * @property string $content
  * @property string $published_at
- * @property string|null $thumbnail
  * @property int $status
  * @property string $slug
  * @property int $category_id
@@ -75,13 +74,13 @@ class Post extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['description', 'thumbnail', 'created_at', 'updated_at'], 'default', 'value' => null],
+            [['description', 'created_at', 'updated_at'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 0],
             [['title', 'content', 'slug', 'category_id'], 'required'],
             [['description', 'content'], 'string'],
             [['published_at', 'created_at', 'updated_at','removed_image'], 'safe'],
             [['status', 'category_id'], 'integer'],
-            [['title', 'thumbnail', 'slug'], 'string', 'max' => 255],
+            [['title', 'slug'], 'string', 'max' => 255],
             [['slug'], 'unique'],
             [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
             [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => PostCategory::class, 'targetAttribute' => ['category_id' => 'id']],
@@ -99,7 +98,6 @@ class Post extends \yii\db\ActiveRecord
             'description' => 'Description',
             'content' => 'Content',
             'published_at' => 'Published At',
-            'thumbnail' => 'Thumbnail',
             'status' => 'Status',
             'slug' => 'Slug',
             'category_id' => 'Category ID',

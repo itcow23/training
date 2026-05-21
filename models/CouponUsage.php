@@ -2,14 +2,14 @@
 
 namespace app\models;
 
-use Yii;
+
 
 /**
  * This is the model class for table "coupon_usage".
  *
  * @property int $id
  * @property int $coupon_id
- * @property string $order_id
+ * @property int $order_id
  * @property int $account_id
  * @property string $applied_code
  * @property float $applied_value
@@ -42,10 +42,10 @@ class CouponUsage extends \yii\db\ActiveRecord
         return [
             [['created_at', 'updated_at'], 'default', 'value' => null],
             [['coupon_id', 'order_id', 'account_id', 'applied_code', 'applied_value', 'applied_type', 'applied_max_amount'], 'required'],
-            [['coupon_id', 'account_id'], 'integer'],
+            [['coupon_id', 'account_id', 'order_id'], 'integer'],
             [['applied_value', 'applied_max_amount'], 'number'],
             [['created_at', 'updated_at'], 'safe'],
-            [['order_id', 'applied_code', 'applied_type'], 'string', 'max' => 255],
+            [['applied_code', 'applied_type'], 'string', 'max' => 255],
             [['account_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::class, 'targetAttribute' => ['account_id' => 'id']],
             [['coupon_id'], 'exist', 'skipOnError' => true, 'targetClass' => Coupon::class, 'targetAttribute' => ['coupon_id' => 'id']],
             [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => Order::class, 'targetAttribute' => ['order_id' => 'id']],

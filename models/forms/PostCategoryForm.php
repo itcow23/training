@@ -10,12 +10,15 @@ class PostCategoryForm extends BaseForm
 
     public $id;
     public $name;
+    public $status;
+
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['name'];
         $scenarios[self::SCENARIO_UPDATE] = ['id', 'name'];
+        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['id', 'status'];
         return $scenarios;
     }
 
@@ -24,6 +27,8 @@ class PostCategoryForm extends BaseForm
         $base = [
             [['name'], 'required'],
             [['name'], 'string', 'max' => 255],
+            [['status'], 'integer'],
+            [['status'], 'default', 'value' => 1],
         ];
 
         $rules = array_merge(
@@ -38,6 +43,7 @@ class PostCategoryForm extends BaseForm
     {
         return [
             'name' => 'Name',
+            'status' => 'Status',
         ];
     }
 }

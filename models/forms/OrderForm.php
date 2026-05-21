@@ -9,14 +9,15 @@ class OrderForm extends BaseForm
 
     public $account_id;
     public $membership_level_id;
-    public $name;
-    public $email;
-    public $phone;
-    public $address;
-    public $discount_amount;
+    public $shipping_name;
+    public $shipping_email;
+    public $shipping_phone;
+    public $shipping_address;
+    public $discount;
     public $subtotal;
+    public $shipping_fee;
     public $final_total;
-    public $pay;
+    public $pay_method;
     public $status;
     public $products;
 
@@ -25,7 +26,7 @@ class OrderForm extends BaseForm
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['account_id', 'membership_level_id', 'name', 'email', 'phone', 'address', 'discount_amount', 'subtotal', 'final_total', 'pay', 'status', 'products'];
+        $scenarios[self::SCENARIO_CREATE] = ['account_id', 'membership_level_id', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'discount', 'subtotal', 'shipping_fee', 'final_total', 'pay_method', 'status', 'products'];
         $scenarios[self::SCENARIO_UPDATE] = ['status'];
         return $scenarios;
     }
@@ -33,11 +34,11 @@ class OrderForm extends BaseForm
     public function rules()
     {
         return [
-            [['account_id', 'name', 'email', 'phone', 'address', 'pay', 'products'], 'required'],
-            [['account_id', 'membership_level_id', 'pay', 'status'], 'integer'],
-            [['discount_amount', 'subtotal', 'final_total'], 'number'],
-            [['discount_amount', 'subtotal', 'final_total'], 'default', 'value' => 0],
-            [['name', 'email', 'phone', 'address'], 'string', 'max' => 255],
+            [['account_id', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'pay_method', 'products'], 'required'],
+            [['account_id', 'membership_level_id', 'pay_method', 'status'], 'integer'],
+            [['discount', 'subtotal', 'shipping_fee', 'final_total'], 'number'],
+            [['discount', 'subtotal', 'shipping_fee', 'final_total'], 'default', 'value' => 0],
+            [['shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address'], 'string', 'max' => 255],
             [['status'], 'default', 'value' => 1],
             ['products', 'validateProducts', 'on' => self::SCENARIO_CREATE],
         ];
@@ -48,14 +49,15 @@ class OrderForm extends BaseForm
         return [
             'account_id' => 'Account',
             'membership_level_id' => 'Membership level',
-            'name' => 'Name',
-            'email' => 'Email',
-            'phone' => 'Phone',
-            'address' => 'Address',
-            'discount_amount' => 'Discount amount',
+            'shipping_name' => 'Name',
+            'shipping_email' => 'Email',
+            'shipping_phone' => 'Phone',
+            'shipping_address' => 'Address',
+            'discount' => 'Discount amount',
             'subtotal' => 'Subtotal',
+            'shipping_fee' => 'Shipping fee',
             'final_total' => 'Final total',
-            'pay' => 'Payment method',
+            'pay_method' => 'Payment method',
             'status' => 'Status',
             'products' => 'Products',
         ];

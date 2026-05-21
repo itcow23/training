@@ -3,7 +3,6 @@
 namespace app\models;
 
 use Override;
-use Yii;
 use yii\behaviors\TimestampBehavior;
 
 /**

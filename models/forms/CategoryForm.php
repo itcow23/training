@@ -12,12 +12,14 @@ class CategoryForm extends BaseForm
     public $name;
     public $image;
     public $removed_image;
+    public $status;
 
     public function scenarios()
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['name', 'image'];
         $scenarios[self::SCENARIO_UPDATE] = ['id', 'name', 'image', 'removed_image'];
+        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['id', 'status'];
         return $scenarios;
     }
 
@@ -26,6 +28,8 @@ class CategoryForm extends BaseForm
         $base = [
             [['name'], 'required'],
             [['name'], 'string', 'max' => 255],
+            [['status'], 'integer'],
+            [['status'], 'default', 'value' => 1],
         ];
 
         $rules = array_merge(
@@ -43,7 +47,7 @@ class CategoryForm extends BaseForm
         return [
             'id' => 'ID',
             'name' => 'Name',
-            'slug' => 'Slug',
+            'status' => 'Status',
             'image' => 'Image',
             'removed_image' => 'Remove images',
         ];

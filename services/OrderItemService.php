@@ -2,11 +2,10 @@
 
 namespace app\services;
 
-use app\models\OrderDetail;
-use yii\web\HttpException;
+use app\models\OrderItem;
 use RuntimeException;
 
-class OrderDetailService
+class OrderItemService
 {
     public function create($orderId, $productList, $products)
     {
@@ -17,12 +16,12 @@ class OrderDetailService
                 throw new RuntimeException("Product ID {$item['product_id']} does not exist.");
             }
 
-            $detail = new OrderDetail();
+            $detail = new OrderItem();
 
             $detail->order_id = $orderId;
             $detail->product_id = $product->id;
             $detail->quantity = $item['quantity'];
-
+            $detail->unit_price = $product->price;
             $detail->total_price = $product->price * $item['quantity'];
 
             if (!$detail->save()) {

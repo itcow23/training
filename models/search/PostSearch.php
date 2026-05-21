@@ -20,7 +20,7 @@ class PostSearch extends PostResponse
     {
         return [
             [['id', 'status', 'category_id'], 'integer'],
-            [['title', 'description', 'content', 'published_at', 'thumbnail', 'slug', 'created_at', 'updated_at','key'], 'safe'],
+            [['title', 'description', 'content', 'published_at','slug', 'created_at', 'updated_at','key'], 'safe'],
         ];
     }
 
@@ -81,7 +81,6 @@ class PostSearch extends PostResponse
         $query->andFilterWhere(['like', 'title', $this->title])
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'content', $this->content])
-            ->andFilterWhere(['like', 'thumbnail', $this->thumbnail])
             ->andFilterWhere(['like', 'slug', $this->slug]);
 
         if(!empty($params['key'])){

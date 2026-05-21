@@ -20,17 +20,22 @@ abstract class BaseController extends Controller
     public $enableCsrfValidation = false;
 
     private const MODEL_DEFAULT_RELATIONS = [
-        OrderResponse::class => ['orderDetails.product'],
+        OrderResponse::class => ['orderItems.product'],
         PostResponse::class => ['comments', 'ratings', 'media'],
         ProductResponse::class => ['category', 'media'],
         CategoryResponse::class => ['products', 'media'],
         PostCategoryResponse::class => ['posts'],
     ];
 
-    public function behaviors()
+    public function beforeAction($action)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
+        return parent::beforeAction($action);
+    }
 
+
+    public function behaviors()
+    {
         return array_merge(
             parent::behaviors(),
             [

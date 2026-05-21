@@ -21,7 +21,7 @@ class ProductForm extends BaseForm
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount', 'image'];
+        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'description', 'discount', 'image'];
         $scenarios[self::SCENARIO_UPDATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount', 'image', 'removed_image'];
         return $scenarios;
     }
@@ -33,7 +33,7 @@ class ProductForm extends BaseForm
             [['category_id', 'status', 'discount'], 'integer'],
             [['status'], 'default', 'value' => 1],
             [['name'], 'string', 'max' => 255],
-            [['price'], 'number'],
+            [['price'], 'number', 'min' => 0],
             [['description'], 'string'],
         ];
 

@@ -20,9 +20,9 @@ class OrderSearch extends Order
     public function rules()
     {
         return [
-            [['id', 'name', 'email', 'phone', 'address', 'created_at', 'updated_at'], 'safe'],
-            [['account_id', 'membership_level_id', 'pay', 'status'], 'integer'],
-            [['discount_amount', 'subtotal', 'final_total'], 'number'],
+            [['id', 'order_code', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'created_at', 'updated_at'], 'safe'],
+            [['account_id', 'membership_level_id', 'pay_method', 'status'], 'integer'],
+            [['discount', 'subtotal', 'final_total', 'shipping_fee'], 'number'],
         ];
     }
 
@@ -46,7 +46,7 @@ class OrderSearch extends Order
     public function search($params, $formName = null)
     {
         $query = OrderResponse::find()->with([
-            'orderDetails.product'
+            'orderItems.product'
         ]);
 
         // add conditions that should always apply here
@@ -76,20 +76,21 @@ class OrderSearch extends Order
         $query->andFilterWhere([
             'account_id' => $this->account_id,
             'membership_level_id' => $this->membership_level_id,
-            'discount_amount' => $this->discount_amount,
+            'discount' => $this->discount,
             'subtotal' => $this->subtotal,
             'final_total' => $this->final_total,
-            'pay' => $this->pay,
+            'pay_method' => $this->pay_method,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
 
         $query->andFilterWhere(['like', 'id', $this->id])
-            ->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'email', $this->email])
-            ->andFilterWhere(['like', 'phone', $this->phone])
-            ->andFilterWhere(['like', 'address', $this->address]);
+            ->andFilterWhere(['like', 'order_code', $this->order_code])
+            ->andFilterWhere(['like', 'shipping_name', $this->shipping_name])
+            ->andFilterWhere(['like', 'shipping_email', $this->shipping_email])
+            ->andFilterWhere(['like', 'shipping_phone', $this->shipping_phone])
+            ->andFilterWhere(['like', 'shipping_address', $this->shipping_address]);
 
         if (!empty($params['key'])) {
             $query->andFilterWhere(['like', 'id', $params['key']]);

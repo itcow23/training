@@ -25,7 +25,7 @@ use yii\behaviors\TimestampBehavior;
  * @property CartItem[] $cartItems
  * @property Category $category
  * @property Gallery[] $galleries
- * @property OrderDetail[] $orderDetails
+ * @property OrderItem[] $orderItems
  * @property PostProduct[] $postProducts
  */
 class Product extends \yii\db\ActiveRecord
@@ -130,13 +130,13 @@ class Product extends \yii\db\ActiveRecord
     }
 
     /**
-     * Gets query for [[OrderDetails]].
+     * Gets query for [[OrderItems]].
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getOrderDetails()
+    public function getOrderItems()
     {
-        return $this->hasMany(OrderDetail::class, ['product_id' => 'id']);
+        return $this->hasMany(OrderItem::class, ['product_id' => 'id']);
     }
 
     /**
