@@ -22,17 +22,14 @@ class OrderResponse extends Order
             'pay_method',
             'status',
             'created_at',
-            'detail' => function ($model) {
+            'items' => function ($model) {
                 return array_map(function ($orderItem) {
-                    $product = $orderItem->product;
                     return [
-                        'order_id' => $orderItem->order_id,
-                        'product' => [
-                            'name' => $product->name,
-                            'unit_price' => $orderItem->unit_price,
-                            'quantity' => $orderItem->quantity,
-                        ],
-                        'total_price' => $orderItem->total_price
+                        'product_id' => $orderItem->product_id,
+                        'product_name' => $orderItem->product->name ?? null,
+                        'unit_price' => (float)$orderItem->unit_price,
+                        'quantity' => (int)$orderItem->quantity,
+                        'total_price' => (float)$orderItem->total_price
                     ];
                 }, $model->orderItems);
             }

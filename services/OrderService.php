@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\helpers\AttributeHelper;
 use Throwable;
 use RuntimeException;
 use app\models\forms\OrderForm;
@@ -26,7 +27,7 @@ class OrderService
         $transaction = Yii::$app->db->beginTransaction();
 
         try {
-            $model->setAttributes($form->getAttributes(), false);
+            $this->assignAttributes($model, $form);
 
             if (empty($form->products)) {
                 throw new RuntimeException('Products list is required.');
@@ -64,6 +65,12 @@ class OrderService
         }
     }
 
+    private function assignAttributes(OrderResponse $model, OrderForm $form)
+    {
+        $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
+        AttributeHelper::map($model, $form, $pushed);
+    }
+    
     private function calculateSubtotal($products)
     {
         $subtotal = 0;

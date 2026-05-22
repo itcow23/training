@@ -90,7 +90,8 @@ class OrderSearch extends Order
             ->andFilterWhere(['like', 'shipping_name', $this->shipping_name])
             ->andFilterWhere(['like', 'shipping_email', $this->shipping_email])
             ->andFilterWhere(['like', 'shipping_phone', $this->shipping_phone])
-            ->andFilterWhere(['like', 'shipping_address', $this->shipping_address]);
+            ->andFilterWhere(['like', 'shipping_address', $this->shipping_address])
+            ->andFilterWhere(['like', 'status', $this->status]);
 
         if (!empty($this->key)) {
             $query->andFilterWhere(['like', 'order_code', $this->key]);

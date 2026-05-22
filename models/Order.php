@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use Override;
+use Yii;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -37,7 +37,6 @@ class Order extends \yii\db\ActiveRecord
     public const STATUS_COMPLETED = 4;
     public const STATUS_CANCEL = 0;
 
-    #[Override]
     public function behaviors()
     {
         return [
@@ -50,27 +49,21 @@ class Order extends \yii\db\ActiveRecord
         ];
     }
 
-    #[Override]
+    public function generateOrderCode()
+    {
+        $date = date('YmdHi');
+        $random = strtoupper(Yii::$app->security->generateRandomString(4));
+        $this->order_code = "ORD{$date}{$random}";
+
+        if (self::find()->where(['order_code' => $this->order_code])->exists()) {
+            return $this->generateOrderCode();
+        }
+    }
+
     public function beforeSave($insert)
     {
-        if ($insert) {
-            if (empty($this->order_code)) {
-                $date = date('Ymd');
-                $prefix = 'ORD' . $date;
-
-                $lastOrder = self::find()
-                    ->where(['like', 'order_code', $prefix . '%', false])
-                    ->orderBy(['id' => SORT_DESC])
-                    ->one();
-
-                if ($lastOrder) {
-                    $lastNum = (int) substr($lastOrder->order_code, -4);
-                    $newOrd = $lastNum + 1;
-                } else {
-                    $newOrd = 1;
-                }
-                $this->order_code = $prefix . str_pad($newOrd, 4, '0', STR_PAD_LEFT);
-            }
+        if ($insert && empty($this->order_code)) {
+            $this->generateOrderCode();
         }
         return parent::beforeSave($insert);
     }

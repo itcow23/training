@@ -17,10 +17,10 @@ class OrderController extends BaseController
 {
     public OrderService $orderService;
 
-    public function init()
+    public function __construct($id, $module, OrderService $orderService, $config = [])
     {
-        $this->orderService = new OrderService();
-        return parent::init();
+        $this->orderService = $orderService;
+        parent::__construct($id, $module, $config);
     }
 
     /**
@@ -127,10 +127,12 @@ class OrderController extends BaseController
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-       if(!$this->orderService->delete($model)){
-           return $this->modelErrorResponse([$model], 'Failed to delete order');
-       }
-        return $this->successResponse([], 'Order deleted successfully'
+        if (!$this->orderService->delete($model)) {
+            return $this->modelErrorResponse([$model], 'Failed to delete order');
+        }
+        return $this->successResponse(
+            [],
+            'Order deleted successfully'
         );
     }
 
