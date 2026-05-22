@@ -18,15 +18,16 @@ class CategoryForm extends BaseForm
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['name', 'image'];
-        $scenarios[self::SCENARIO_UPDATE] = ['id', 'name', 'image', 'removed_image'];
-        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['id', 'status'];
+        $scenarios[self::SCENARIO_UPDATE] = ['name','status', 'image', 'removed_image'];
+        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
         return $scenarios;
     }
 
     public function rules()
     {
         $base = [
-            [['name'], 'required'],
+            [['name'], 'required', 'on' => [self::SCENARIO_CREATE]],
+            [['name'], 'validateOnUpdate', 'on' => [self::SCENARIO_UPDATE], 'skipOnEmpty' => false],
             [['name'], 'string', 'max' => 255],
             [['status'], 'integer'],
             [['status'], 'default', 'value' => 1],

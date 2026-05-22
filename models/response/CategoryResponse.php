@@ -11,6 +11,7 @@ class CategoryResponse extends Category
         return [
             'id',
             'name',
+            'status',
             'products' => function ($model) {
                 return $model->products;
             },

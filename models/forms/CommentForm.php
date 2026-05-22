@@ -19,6 +19,7 @@ class CommentForm extends BaseForm
         return $scenarios;
     }
 
+
     public function rules()
     {
         return [

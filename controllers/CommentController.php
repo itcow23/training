@@ -48,26 +48,18 @@ class CommentController extends BaseController
         $form = new CommentForm(['scenario' => CommentForm::SCENARIO_CREATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->commentService->create($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $result],
+            if ($this->commentService->create($model, $form)) {
+                 return $this->successResponse(
+                    ['model' => $this->findModel($model->id, [])],
                     'Comment created successfully',
                     201
                 );
             }
 
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to create comment',
-                422
-            );
+           return $this->modelErrorResponse([$form, $model], 'Failed to create comment');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
 
@@ -86,25 +78,16 @@ class CommentController extends BaseController
         $form = new CommentForm(['scenario' => CommentForm::SCENARIO_UPDATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->commentService->update($model, $form)) {
+            if ($this->commentService->update($model, $form)) {
                 return $this->successResponse(
-                    ['model' => $result],
+                    ['model' => $this->findModel($model->id, [])],
                     'Comment updated successfully'
                 );
             }
 
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to update comment',
-                422
-            );
+            return $this->modelErrorResponse([$form, $model], 'Failed to update comment');
         }
-
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -122,19 +105,12 @@ class CommentController extends BaseController
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
             if ($this->commentService->delete($model, $form)) {
-                return $this->successResponse(
-                    [],
-                    'Comment deleted successfully',
-                );
+               return $this->successResponse([], 'Comment deleted successfully');
             }
-            return $this->errorResponse($form->hasErrors() ? $form : $model, 'Delete error', 400);
+            return $this->modelErrorResponse([$form, $model], 'Failed to delete comment');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**

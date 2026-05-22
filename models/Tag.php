@@ -42,31 +42,6 @@ class Tag extends \yii\db\ActiveRecord
         return 'tag';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['created_at', 'updated_at'], 'default', 'value' => null],
-            [['name'], 'required'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['name'], 'string', 'max' => 255],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-        ];
-    }
 
     /**
      * Gets query for [[PostTags]].

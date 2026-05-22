@@ -71,7 +71,7 @@ abstract class BaseController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
 
-     protected function successResponse(array $data = [], string $message = 'Success', int $statusCode = 200): array
+    protected function successResponse(array $data = [], string $message = 'Success', int $statusCode = 200): array
     {
         Yii::$app->response->statusCode = $statusCode;
 
@@ -87,35 +87,101 @@ abstract class BaseController extends Controller
         Yii::$app->response->statusCode = $statusCode;
 
         $errorData = [];
-        if (is_object($errors) && isset($errors->errors)) {
+        if ($errors instanceof Model) {
+            $errorData = $errors->getErrors();
+        } elseif (is_object($errors) && isset($errors->errors)) {
             $errorData = $errors->errors;
         } elseif (is_array($errors)) {
             $errorData = $errors;
-        } elseif (is_string($errors)) {
-            $errorData = [$errors];
+        } else {
+            $errorData = (array) $errors;
+        }
+
+        $finalErrors = $errorData;
+        if (empty($errorData)) {
+            $finalErrors = [$message];
         }
 
         return [
             'success' => false,
             'message' => $message,
-            'errors' => $errorData,
+            'errors' => $finalErrors,
         ];
     }
 
-    protected function listResponse(array $items, int $total, int $page, int $pageSize, int $pageCount, string $message = 'Success'): array
+    /**
+     * Responds with errors from one or more models (e.g. Form, Active Record).
+     *
+     * @param Model[]|Model $models
+     * @param string $message
+     * @param int $statusCode
+     * @return array
+     */
+    protected function modelErrorResponse($models, string $message = 'Validation failed', int $statusCode = 422): array
     {
+        $errorData = [];
+        
+        $modelsArray = [];
+        if (is_array($models)) {
+            $modelsArray = $models;
+        } else {
+            $modelsArray = [$models];
+        }
+
+        foreach ($modelsArray as $model) {
+            if ($model instanceof Model && $model->hasErrors()) {
+                $errorData = array_merge($errorData, $model->getErrors());
+            }
+        }
+
+        $finalErrors = $errorData;
+        if (empty($errorData)) {
+            $finalErrors = ['message' => [$message]];
+        }
+
+        return $this->errorResponse($finalErrors, $message, $statusCode);
+    }
+
+    /**
+     * Formats an ActiveDataProvider response with automatic pagination extraction.
+     *
+     * @param \yii\data\ActiveDataProvider $dataProvider
+     * @param string $message
+     * @return array
+     */
+    protected function dataProviderResponse(\yii\data\ActiveDataProvider $dataProvider, string $message = 'Success'): array
+    {
+        $models = $dataProvider->getModels();
+        $totalCount = (int) $dataProvider->getTotalCount();
+        
+        $pagination = $dataProvider->getPagination();
+        
+        $page = 1;
+        $pageSize = count($models);
+        
+        $pageCount = 1;
+        if ($totalCount === 0) {
+            $pageCount = 0;
+        }
+
+        if ($pagination !== null && $pagination !== false) {
+            $page = $pagination->getPage() + 1;
+            $pageSize = $pagination->getPageSize();
+            $pageCount = $pagination->getPageCount();
+        }
+
         Yii::$app->response->statusCode = 200;
 
         return [
             'success' => true,
             'message' => $message,
-            'data' => $items,
+            'data' => $models,
             'meta' => [
                 'pagination' => [
-                    'total' => $total,
-                    'page' => $page,
-                    'pageSize' => $pageSize,
-                    'pageCount' => $pageCount,
+                    'total' => $totalCount,
+                    'page' => (int) $page,
+                    'pageSize' => (int) $pageSize,
+                    'pageCount' => (int) $pageCount,
                 ],
             ],
         ];

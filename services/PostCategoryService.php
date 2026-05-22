@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\helpers\AttributeHelper;
 use app\models\forms\PostCategoryForm;
 use app\models\response\PostCategoryResponse;
 use RuntimeException;
@@ -52,9 +53,7 @@ class PostCategoryService
 
     private function assignAttributes(PostCategoryResponse $model, PostCategoryForm $form): void
     {
-        $attributes = $form->getAttributes([
-            'name'
-        ]);
+       $attributes = AttributeHelper::filter($form->getAttributes());
 
         $model->setAttributes($attributes, false);
 

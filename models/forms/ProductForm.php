@@ -30,6 +30,7 @@ class ProductForm extends BaseForm
     {
         $rules = [
             [['category_id', 'name', 'price'], 'required', 'on' => self::SCENARIO_CREATE],
+            [['category_id', 'name', 'price'], 'validateOnUpdate', 'on' => self::SCENARIO_UPDATE, 'skipOnEmpty' => false],
             [['category_id', 'status', 'discount'], 'integer'],
             [['status'], 'default', 'value' => 1],
             [['name'], 'string', 'max' => 255],

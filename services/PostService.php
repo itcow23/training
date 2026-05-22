@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\helpers\AttributeHelper;
 use app\models\forms\PostForm;
 use app\models\PostTag;
 use app\models\response\PostResponse;
@@ -55,21 +56,16 @@ class PostService
 
     private function assignAttributes(PostResponse $model, PostForm $form): void
     {
-        $attributes = array_filter(
-            $form->getAttributes([
-                'category_id',
-                'title',
-                'content',
-                'status',
-                'description',
-            ]),
-            fn($value) => $value !== null
-        );
+       $attributes = AttributeHelper::filter($form->getAttributes());
 
         $model->setAttributes($attributes, false);
 
-        if ($form->removed_image !== null && is_array($form->removed_image)) {
-            $model->removed_image = $form->removed_image;
+        if (isset($attributes['removed_image'])) {
+            $model->removed_image = $attributes['removed_image'];
+        }
+
+        if (isset($attributes['image'])) {
+            $model->image = $attributes['image'];
         }
     }
 
@@ -120,33 +116,43 @@ class PostService
 
 
         if ($form->removed_tag !== null && is_array($form->removed_tag)) {
-            $removedTagIds = [];
-            foreach ($form->removed_tag as $tagId) {
-                $removedTagIds[] = $tagId;
-            }
-            PostTag::deleteAll(['post_id' => $model->id, 'tag_id' => $removedTagIds]);
+            $this->removeTag($model, $form);
         }
 
         if ($form->add_tag !== null && is_array($form->add_tag)) {
-
-            $existingTagIds = PostTag::find()
-                ->select(['tag_id'])
-                ->where(['post_id' => $model->id])
-                ->column();
-
-            $newTagIds = array_diff($form->add_tag, $existingTagIds);
-
-            $rows = [];
-
-            foreach ($newTagIds as $tagId) {
-                $rows[] = [$model->id, $tagId];
-            }
-
-            if (!empty($rows)) {
-                Yii::$app->db->createCommand()
-                    ->batchInsert(PostTag::tableName(), ['post_id', 'tag_id'], $rows)
-                    ->execute();
-            }
+            $this->addTag($model, $form);
         }
+    }
+
+    protected function addTag(PostResponse $model, PostForm $form)
+    {
+        $existingTagIds = PostTag::find()
+            ->select(['tag_id'])
+            ->where(['post_id' => $model->id])
+            ->column();
+
+
+        $newTagIds = array_diff($form->add_tag, $existingTagIds);
+
+        $rows = [];
+
+        foreach ($newTagIds as $tagId) {
+            $rows[] = [$model->id, $tagId];
+        }
+
+        if (!empty($rows)) {
+            Yii::$app->db->createCommand()
+                ->batchInsert(PostTag::tableName(), ['post_id', 'tag_id'], $rows)
+                ->execute();
+        }
+    }
+
+    protected function removeTag(PostResponse $model, PostForm $form)
+    {
+        $removedTagIds = [];
+        foreach ($form->removed_tag as $tagId) {
+            $removedTagIds[] = $tagId;
+        }
+        PostTag::deleteAll(['post_id' => $model->id, 'tag_id' => $removedTagIds]);
     }
 }

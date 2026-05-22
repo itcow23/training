@@ -22,7 +22,7 @@ class CategorySearch extends Category
     {
         return [
             [['id'], 'integer'],
-            [['name', 'slug', 'img', 'created_at', 'updated_at'], 'safe'],
+            [['name', 'slug','status', 'created_at', 'updated_at'], 'safe'],
             ['key', 'safe'],
             [['pageSize'], 'integer']
         ];
@@ -50,8 +50,6 @@ class CategorySearch extends Category
 
         $query = CategoryResponse::find()->with(['products','media']);
 
-
-
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -76,6 +74,8 @@ class CategorySearch extends Category
         $query->andFilterWhere([
             'id' => $this->id,
             'name' => $this->name,
+            'slug' => $this->slug,
+            'status' => $this->status,
         ]);
 
         if ($this->key !== null && $this->key !== '') {

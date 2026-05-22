@@ -22,7 +22,9 @@ class RatingForm extends BaseForm
     {
         return [
             [['post_id', 'account_id', 'score'], 'required'],
-            [['post_id', 'account_id', 'score'], 'integer'],
+
+            [['post_id', 'account_id'], 'integer'],
+
             ['score', 'integer', 'min' => 1, 'max' => 5],
         ];
     }

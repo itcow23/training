@@ -49,15 +49,7 @@ class TagController extends BaseController
         $searchModel = new TagSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
 
-
-         return $this->listResponse(
-            $dataProvider->getModels(),
-            $dataProvider->getTotalCount(),
-            $dataProvider->pagination->getPage() + 1,
-            $dataProvider->pagination->getPageSize(),
-            $dataProvider->pagination->getPageCount(),
-            'Tags retrieved successfully'
-        );
+        return $this->dataProviderResponse($dataProvider, 'Tags retrieved successfully');
     }
 
     /**
@@ -85,25 +77,17 @@ class TagController extends BaseController
         $model = new TagResponse();
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->tagService->create($model, $form)) {
-                 return $this->successResponse(
-                    ['model' => $result],
+            if ($this->tagService->create($model, $form)) {
+                return $this->successResponse(
+                    ['model' => $this->findModel($model->id, [])],
                     'Tag created successfully',
                     201
                 );
             }
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to create tag',
-                422
-            );
+            return $this->modelErrorResponse([$form, $model], 'Failed to create tag');
         }
 
-         return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -119,24 +103,16 @@ class TagController extends BaseController
         $form = new TagForm(['scenario' => TagForm::SCENARIO_UPDATE, 'id' => $model->id]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->tagService->update($model, $form)) {
-                 return $this->successResponse(
-                    ['model' => $result],
+            if ($this->tagService->update($model, $form)) {
+                return $this->successResponse(
+                    ['model' => $this->findModel($model->id, [])],
                     'Tag updated successfully'
                 );
             }
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to update tag',
-                422
-            );
+            return $this->modelErrorResponse([$form, $model], 'Failed to update tag');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -151,17 +127,10 @@ class TagController extends BaseController
        $model = $this->findModel($id);
 
         if (!$this->tagService->delete($model)) {
-             return $this->errorResponse(
-                $model->hasErrors() ? $model->errors : ['message' => 'Failed to delete'],
-                'Delete failed',
-                400
-            );
+            return $this->modelErrorResponse([$model], 'Failed to delete tag');
         }
 
-         return $this->successResponse(
-            [],
-            'Tag deleted successfully'
-        );
+        return $this->successResponse([], 'Tag deleted successfully');
     }
 
     /**

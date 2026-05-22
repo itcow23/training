@@ -68,43 +68,7 @@ class Post extends \yii\db\ActiveRecord
         return 'post';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['description', 'created_at', 'updated_at'], 'default', 'value' => null],
-            [['status'], 'default', 'value' => 0],
-            [['title', 'content', 'slug', 'category_id'], 'required'],
-            [['description', 'content'], 'string'],
-            [['published_at', 'created_at', 'updated_at','removed_image'], 'safe'],
-            [['status', 'category_id'], 'integer'],
-            [['title', 'slug'], 'string', 'max' => 255],
-            [['slug'], 'unique'],
-            [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
-            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => PostCategory::class, 'targetAttribute' => ['category_id' => 'id']],
-        ];
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'title' => 'Title',
-            'description' => 'Description',
-            'content' => 'Content',
-            'published_at' => 'Published At',
-            'status' => 'Status',
-            'slug' => 'Slug',
-            'category_id' => 'Category ID',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-        ];
-    }
 
     /**
      * Gets query for [[Accounts]].
@@ -151,10 +115,6 @@ class Post extends \yii\db\ActiveRecord
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getPostTags()
-    {
-        return $this->hasMany(PostTag::class, ['post_id' => 'id']);
-    }
 
     public function getTags()
     {

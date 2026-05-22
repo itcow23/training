@@ -2,6 +2,7 @@
 
 namespace app\models\forms;
 
+use Yii;
 use yii\base\Model;
 
 class BaseForm extends Model
@@ -64,5 +65,12 @@ class BaseForm extends Model
         ];
     }
 
-    // Note: default and string-max helpers removed; add explicit rules in forms instead.
+    public function validateOnUpdate($attribute): void
+    {
+        $postData = Yii::$app->request->post();
+
+        if (array_key_exists($attribute, $postData) && ($this->$attribute === '' || $this->$attribute === null)) {
+            $this->addError($attribute, $this->getAttributeLabel($attribute) . ' cannot be blank.');
+        }
+    }
 }

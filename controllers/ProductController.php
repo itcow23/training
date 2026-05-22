@@ -30,16 +30,9 @@ class ProductController extends BaseController
     public function actionIndex()
     {
         $searchModel = new ProductSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
+        $dataProvider = $searchModel->search($this->request->queryParams, '');
 
-        return $this->listResponse(
-            $dataProvider->getModels(),
-            $dataProvider->getTotalCount(),
-            $dataProvider->pagination->getPage() + 1,
-            $dataProvider->pagination->getPageSize(),
-            $dataProvider->pagination->getPageCount(),
-            'Products retrieved successfully'
-        );
+        return $this->dataProviderResponse($dataProvider, 'Products retrieved successfully');
     }
 
     /**
@@ -76,25 +69,18 @@ class ProductController extends BaseController
         $form = new ProductForm(['scenario' => ProductForm::SCENARIO_CREATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->productService->create($model, $form)) {
+            if ($this->productService->create($model, $form)) {
                 return $this->successResponse(
-                    ['model' => $result],
+                    ['model' => $this->findModel($model->id, [])],
                     'Product created successfully',
                     201
                 );
             }
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to create product',
-                422
-            );
+
+            return $this->modelErrorResponse([$form, $model], 'Failed to create product');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -110,24 +96,17 @@ class ProductController extends BaseController
         $form = new ProductForm(['scenario' => ProductForm::SCENARIO_UPDATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->productService->update($model, $form)) {
+            if ($this->productService->update($model, $form)) {
                 return $this->successResponse(
-                    ['model' => $result],
+                    ['model' => $this->findModel($model->id, [])],
                     'Product updated successfully'
                 );
             }
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to update product',
-                422
-            );
+
+            return $this->modelErrorResponse([$form, $model], 'Failed to update product');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -142,17 +121,10 @@ class ProductController extends BaseController
         $model = $this->findModel($id);
 
         if (!$this->productService->delete($model)) {
-            return $this->errorResponse(
-                $model->hasErrors() ? $model->errors : ['message' => 'Failed to delete'],
-                'Delete failed',
-                400
-            );
+            return $this->modelErrorResponse([$model], 'Failed to delete product');
         }
 
-        return $this->successResponse(
-            [],
-            'Product deleted successfully',
-        );
+        return $this->successResponse([], 'Product deleted successfully');
     }
 
     /**

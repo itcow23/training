@@ -2,6 +2,8 @@
 
 namespace app\models\query;
 
+use app\models\Order;
+
 /**
  * This is the ActiveQuery class for [[\app\models\Order]].
  *
@@ -55,5 +57,17 @@ class OrderQuery extends \yii\db\ActiveQuery
     public function cancel()
     {
         return $this->andWhere(['status' => 0]);
+    }
+
+    public function filterByStatus($status)
+    {
+        return match ($status) {
+            Order::STATUS_PENDING => $this->pending(),
+            Order::STATUS_CONFIRM => $this->confirm(),
+            Order::STATUS_SHIPPING => $this->shipping(),
+            Order::STATUS_COMPLETED => $this->completed(),
+            Order::STATUS_CANCEL => $this->cancel(),
+            default => $this
+        };
     }
 }

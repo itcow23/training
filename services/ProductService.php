@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\helpers\AttributeHelper;
 use app\models\forms\ProductForm;
 use app\models\response\ProductResponse;
 use RuntimeException;
@@ -40,10 +41,7 @@ class ProductService
             }
 
             $transaction->commit();
-            return ProductResponse::find()
-                ->where(['id' => $model->id])
-                ->with(['category', 'media'])
-                ->one();
+            return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -53,21 +51,16 @@ class ProductService
 
     private function assignAttributes(ProductResponse $model, ProductForm $form): void
     {
-        $attributes = array_filter(
-            $form->getAttributes([
-                'category_id',
-                'name',
-                'price',
-                'status',
-                'description',
-                'discount',
-            ]),
-            fn($value) => $value !== null
-        );
+        $attributes = AttributeHelper::filter($form->getAttributes());
+
         $model->setAttributes($attributes, false);
 
-        if ($form->removed_image !== null && is_array($form->removed_image)) {
-            $model->removed_image = $form->removed_image;
+        if (isset($attributes['removed_image'])) {
+            $model->removed_image = $attributes['removed_image'];
+        }
+
+        if (isset($attributes['image'])) {
+            $model->image = $attributes['image'];
         }
     }
 

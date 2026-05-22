@@ -85,50 +85,6 @@ class Order extends \yii\db\ActiveRecord
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['membership_level_id', 'subtotal', 'final_total', 'created_at', 'updated_at', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address'], 'default', 'value' => null],
-            [['discount', 'shipping_fee'], 'default', 'value' => 0],
-            [['status'], 'default', 'value' => 1],
-            [['account_id', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address','pay_method'], 'required'],
-            [['account_id', 'membership_level_id', 'pay_method', 'status'], 'integer'],
-            [['shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address'], 'string'],
-            [['discount', 'subtotal', 'final_total', 'shipping_fee'], 'number'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['order_code', 'shipping_name', 'shipping_email'], 'string', 'max' => 255],
-            [['order_code'], 'unique'],
-            [['account_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::class, 'targetAttribute' => ['account_id' => 'id']],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'order_code' => 'Order Code',
-            'account_id' => 'Account ID',
-            'membership_level_id' => 'Membership Level ID',
-            'shipping_name' => 'Name',
-            'shipping_email' => 'Email',
-            'shipping_phone' => 'Phone',
-            'shipping_address' => 'Address',
-            'discount' => 'Discount Amount',
-            'subtotal' => 'Subtotal',
-            'final_total' => 'Final Total',
-            'pay_method' => 'Payment Method',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-        ];
-    }
-
-    /**
      * Gets query for [[Account]].
      *
      * @return \yii\db\ActiveQuery

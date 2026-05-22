@@ -32,14 +32,7 @@ class OrderController extends BaseController
     {
         $searchModel = new OrderSearch();
         $dataProvider = $searchModel->search($this->request->queryParams);
-        return $this->listResponse(
-            $dataProvider->getModels(),
-            $dataProvider->getTotalCount(),
-            $dataProvider->pagination->getPage() + 1,
-            $dataProvider->pagination->getPageSize(),
-            $dataProvider->pagination->getPageCount(),
-            'Orders retrieved successfully'
-        );
+        return $this->dataProviderResponse($dataProvider, 'Orders retrieved successfully');
     }
 
     /**
@@ -58,29 +51,7 @@ class OrderController extends BaseController
 
     public function actionFilter($status)
     {
-        $query = OrderResponse::find();
-
-        switch ($status) {
-            case 1:
-                $query->pending();
-                break;
-
-            case 2:
-                $query->confirm();
-                break;
-
-            case 3:
-                $query->shipping();
-                break;
-
-            case 4:
-                $query->completed();
-                break;
-
-            case 0:
-                $query->cancel();
-                break;
-        }
+        $query = OrderResponse::find()->filterByStatus($status);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -94,14 +65,7 @@ class OrderController extends BaseController
             ],
         ]);
 
-        return $this->listResponse(
-            $dataProvider->getModels(),
-            $dataProvider->getTotalCount(),
-            $dataProvider->pagination->getPage() + 1,
-            $dataProvider->pagination->getPageSize(),
-            $dataProvider->pagination->getPageCount(),
-            'Orders retrieved successfully'
-        );
+        return $this->dataProviderResponse($dataProvider, 'Orders filtered by status retrieved successfully');
     }
 
     /**
@@ -115,25 +79,17 @@ class OrderController extends BaseController
         $form = new OrderForm(['scenario' => OrderForm::SCENARIO_CREATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->orderService->create($model, $form)) {
+            if ($this->orderService->create($model, $form)) {
                 return $this->successResponse(
-                    ['order' => $result],
+                    ['order' => $this->findModel($model->id)],
                     'Order created successfully',
                     201
                 );
             }
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to create order',
-                422
-            );
+            return $this->modelErrorResponse([$form, $model], 'Failed to create order');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -149,24 +105,16 @@ class OrderController extends BaseController
         $form = new OrderForm(['scenario' => OrderForm::SCENARIO_UPDATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($result = $this->orderService->updateStatusOrder($model, $form)) {
+            if ($this->orderService->updateStatusOrder($model, $form)) {
                 return $this->successResponse(
-                    ['order' => $result],
+                    ['order' => $this->findModel($model->id)],
                     'Order status updated successfully'
                 );
             }
-            return $this->errorResponse(
-                $form->hasErrors() ? $form : $model,
-                'Failed to update order status',
-                422
-            );
+            return $this->modelErrorResponse([$form, $model], 'Failed to update order status');
         }
 
-        return $this->errorResponse(
-            ['message' => 'POST request required'],
-            'Invalid request',
-            400
-        );
+        return $this->errorResponse('POST request required', 'Invalid request', 400);
     }
 
     /**
@@ -179,17 +127,10 @@ class OrderController extends BaseController
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        if ($this->orderService->delete($model)) {
-            return $this->successResponse(
-                [],
-                'Order deleted successfully',
-            );
-        }
-
-        return $this->errorResponse(
-            $model,
-            'Delete failed',
-            400
+       if(!$this->orderService->delete($model)){
+           return $this->modelErrorResponse([$model], 'Failed to delete order');
+       }
+        return $this->successResponse([], 'Order deleted successfully'
         );
     }
 

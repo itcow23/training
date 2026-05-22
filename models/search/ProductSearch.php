@@ -86,8 +86,8 @@ class ProductSearch extends Product
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'slug', $this->slug]);
 
-        if (!empty($params['key'])) {
-            $query->andFilterWhere(['like', 'name', $params['key']]);
+        if (!empty($this->key)) {
+            $query->andFilterWhere(['like', 'name', $this->key]);
         }
         return $dataProvider;
     }

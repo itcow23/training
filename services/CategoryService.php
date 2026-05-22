@@ -2,12 +2,12 @@
 
 namespace app\services;
 
+use app\helpers\AttributeHelper;
 use app\models\forms\CategoryForm;
 use app\models\response\CategoryResponse;
 use RuntimeException;
 use Throwable;
 use Yii;
-use yii\web\UploadedFile;
 
 class CategoryService
 {
@@ -27,23 +27,19 @@ class CategoryService
         return $this->save($model, $form);
     }
 
-    private function save(CategoryResponse $model, CategoryForm $form)
+    private function save(CategoryResponse $model, CategoryForm $form): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $this->assignAttributes($model, $form);
-            $model->image = UploadedFile::getInstancesByName('image');
-
+        
             if (!$model->save()) {
                 $transaction->rollBack();
                 return false;
             }
 
             $transaction->commit();
-            return CategoryResponse::find()
-                ->where(['id' => $model->id])
-                ->with(['products', 'media'])
-                ->one();
+            return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -53,10 +49,17 @@ class CategoryService
 
     private function assignAttributes(CategoryResponse $model, CategoryForm $form): void
     {
-        $model->setAttributes($form->getAttributes(['name']), false);
 
-        if ($form->removed_image !== null && is_array($form->removed_image)) {
-            $model->removed_image = $form->removed_image;
+        $attributes = AttributeHelper::filter($form->getAttributes());
+
+        $model->setAttributes($attributes, false);
+
+        if (isset($attributes['removed_image'])) {
+            $model->removed_image = $attributes['removed_image'];
+        }
+
+        if (isset($attributes['image'])) {
+            $model->image = $attributes['image'];
         }
     }
 

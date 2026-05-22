@@ -44,37 +44,6 @@ class Comment extends \yii\db\ActiveRecord
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['created_at', 'updated_at'], 'default', 'value' => null],
-            [['account_id', 'post_id', 'content'], 'required'],
-            [['account_id', 'post_id'], 'integer'],
-            [['content'], 'string'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['account_id'], 'exist', 'skipOnError' => true, 'targetClass' => Account::class, 'targetAttribute' => ['account_id' => 'id']],
-            [['post_id'], 'exist', 'skipOnError' => true, 'targetClass' => Post::class, 'targetAttribute' => ['post_id' => 'id']],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'account_id' => 'Account ID',
-            'post_id' => 'Post ID',
-            'content' => 'Content',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-        ];
-    }
-
-    /**
      * Gets query for [[Account]].
      *
      * @return \yii\db\ActiveQuery
@@ -94,6 +63,6 @@ class Comment extends \yii\db\ActiveRecord
         return $this->hasOne(Post::class, ['id' => 'post_id']);
     }
 
-    
+
 
 }

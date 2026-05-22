@@ -92,8 +92,8 @@ class OrderSearch extends Order
             ->andFilterWhere(['like', 'shipping_phone', $this->shipping_phone])
             ->andFilterWhere(['like', 'shipping_address', $this->shipping_address]);
 
-        if (!empty($params['key'])) {
-            $query->andFilterWhere(['like', 'id', $params['key']]);
+        if (!empty($this->key)) {
+            $query->andFilterWhere(['like', 'order_code', $this->key]);
         }
 
         return $dataProvider;

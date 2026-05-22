@@ -61,45 +61,6 @@ class Product extends \yii\db\ActiveRecord
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['description', 'discount', 'slug', 'created_at', 'updated_at'], 'default', 'value' => null],
-            [['status'], 'default', 'value' => 1],
-            [['category_id', 'name', 'price'], 'required'],
-            [['category_id', 'status', 'discount'], 'integer'],
-            [['price'], 'number'],
-            [['description'], 'string'],
-            [['created_at', 'updated_at','removed_image'], 'safe'],
-            [['name', 'slug'], 'string', 'max' => 255],
-            [['slug'], 'unique'],
-            [['category_id'], 'exist', 'skipOnError' => true, 'targetClass' => Category::class, 'targetAttribute' => ['category_id' => 'id']],
-            [['image'], 'file', 'maxFiles' => 10, 'skipOnEmpty' => true],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'category_id' => 'Category ID',
-            'name' => 'Name',
-            'price' => 'Price',
-            'status' => 'Status',
-            'description' => 'Description',
-            'discount' => 'Discount',
-            'slug' => 'Slug',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-        ];
-    }
-
-    /**
      * Gets query for [[CartItems]].
      *
      * @return \yii\db\ActiveQuery

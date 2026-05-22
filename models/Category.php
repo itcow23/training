@@ -43,7 +43,6 @@ class Category extends \yii\db\ActiveRecord
         ];
     }
 
-
     /**
      * {@inheritdoc}
      */
@@ -51,36 +50,6 @@ class Category extends \yii\db\ActiveRecord
     {
         return 'category';
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['name'], 'required'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['name', 'slug'], 'string', 'max' => 255],
-            [['name'], 'unique'],
-            [['slug'], 'unique'],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'slug' => 'Slug',
-            'image' => 'Image',
-            'created_at' => 'Created at',
-            'updated_at' => 'Updated at',
-        ];
-    }
-
     /**
      * Gets query for [[Products]].
      *

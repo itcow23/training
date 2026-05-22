@@ -83,8 +83,8 @@ class PostSearch extends PostResponse
             ->andFilterWhere(['like', 'content', $this->content])
             ->andFilterWhere(['like', 'slug', $this->slug]);
 
-        if(!empty($params['key'])){
-            $query->andFilterWhere(['or',['like','title',$params['key']],['like','content',$params['key']]]);
+        if(!empty($this->key)) {
+            $query->andFilterWhere(['or',['like','title',$this->key],['like','content',$this->key],['like','description',$this->key]]);
         }
 
         return $dataProvider;

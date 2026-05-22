@@ -36,9 +36,10 @@ class OrderForm extends BaseForm
         return [
             [['account_id', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'pay_method', 'products'], 'required'],
             [['account_id', 'membership_level_id', 'pay_method', 'status'], 'integer'],
-            [['discount', 'subtotal', 'shipping_fee', 'final_total'], 'number'],
-            [['discount', 'subtotal', 'shipping_fee', 'final_total'], 'default', 'value' => 0],
+            [['discount', 'shipping_fee',], 'number'],
+            [['discount', 'shipping_fee',], 'default', 'value' => 0],
             [['shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address'], 'string', 'max' => 255],
+            [['shipping_email'], 'email'],
             [['status'], 'default', 'value' => 1],
             ['products', 'validateProducts', 'on' => self::SCENARIO_CREATE],
         ];

@@ -30,6 +30,7 @@ class PostForm extends BaseForm
 
         $base = [
             [['title', 'content', 'category_id'], 'required', 'on' => self::SCENARIO_CREATE],
+            [['title', 'content', 'category_id'], 'validateOnUpdate', 'on' => self::SCENARIO_UPDATE],
             [['description', 'content'], 'string'],
             [['published_at'], 'safe'],
             [['status', 'category_id'], 'integer'],

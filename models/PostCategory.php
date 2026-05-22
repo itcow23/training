@@ -43,33 +43,6 @@ class PostCategory extends \yii\db\ActiveRecord
         return 'post_category';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['created_at', 'updated_at'], 'default', 'value' => null],
-            [['name', 'slug'], 'required'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['name', 'slug'], 'string', 'max' => 255],
-            [['slug'], 'unique'],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'slug' => 'Slug',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
-        ];
-    }
 
     /**
      * Gets query for [[Posts]].

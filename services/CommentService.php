@@ -27,7 +27,7 @@ class CommentService
             }
 
             $transaction->commit();
-            return $model;
+            return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -55,7 +55,7 @@ class CommentService
             }
 
             $transaction->commit();
-            return $model;
+            return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $form->addError('error', $e->getMessage());
