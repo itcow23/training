@@ -17,7 +17,7 @@ class CategoryForm extends BaseForm
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['name', 'image'];
+        $scenarios[self::SCENARIO_CREATE] = ['name', 'image', 'status'];
         $scenarios[self::SCENARIO_UPDATE] = ['name','status', 'image', 'removed_image'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
         return $scenarios;
@@ -30,6 +30,7 @@ class CategoryForm extends BaseForm
             [['name'], 'validateOnUpdate', 'on' => [self::SCENARIO_UPDATE], 'skipOnEmpty' => false],
             [['name'], 'string', 'max' => 255],
             [['status'], 'integer'],
+            [['status'], 'in', 'range' => [0, 1]],
             [['status'], 'default', 'value' => 1],
         ];
 

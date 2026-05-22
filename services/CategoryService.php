@@ -3,15 +3,15 @@
 namespace app\services;
 
 use app\helpers\AttributeHelper;
+use app\models\Category;
 use app\models\forms\CategoryForm;
-use app\models\response\CategoryResponse;
 use RuntimeException;
 use Throwable;
 use Yii;
 
 class CategoryService
 {
-    public function create(CategoryResponse $model, CategoryForm $form)
+    public function create(Category $model, CategoryForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -19,7 +19,7 @@ class CategoryService
         return $this->save($model, $form);
     }
 
-    public function update(CategoryResponse $model, CategoryForm $form)
+    public function update(Category $model, CategoryForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -27,12 +27,12 @@ class CategoryService
         return $this->save($model, $form);
     }
 
-    private function save(CategoryResponse $model, CategoryForm $form): bool
+    private function save(Category $model, CategoryForm $form): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $this->assignAttributes($model, $form);
-        
+
             if (!$model->save()) {
                 $transaction->rollBack();
                 return false;
@@ -47,23 +47,20 @@ class CategoryService
         }
     }
 
-    private function assignAttributes(CategoryResponse $model, CategoryForm $form): void
+    private function assignAttributes(Category $model, CategoryForm $form): void
     {
 
-        $attributes = AttributeHelper::filter($form->getAttributes());
+        AttributeHelper::map($model, $form, $form->getPushedAttributes());
 
-        $model->setAttributes($attributes, false);
-
-        if (isset($attributes['removed_image'])) {
-            $model->removed_image = $attributes['removed_image'];
+        if ($form->image !== null) {
+            $model->image = $form->image;
         }
-
-        if (isset($attributes['image'])) {
-            $model->image = $attributes['image'];
+        if ($form->removed_image !== null) {
+            $model->removed_image = $form->removed_image;
         }
     }
 
-    public function delete(CategoryResponse $model): bool
+    public function delete(Category $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {

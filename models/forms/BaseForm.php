@@ -36,7 +36,14 @@ class BaseForm extends Model
     protected function imageRules(string $attribute = 'image', int $maxFiles = 10): array
     {
         return [
-            [[$attribute], 'file', 'skipOnEmpty' => true, 'maxFiles' => $maxFiles],
+            [
+                [$attribute],
+                'file',
+                'skipOnEmpty' => true,
+                'maxFiles' => $maxFiles,
+                'extensions' => 'jpg, jpeg, png, webp',
+                'mimeTypes' => 'image/jpeg, image/png, image/webp',
+            ],
         ];
     }
 
@@ -65,12 +72,25 @@ class BaseForm extends Model
         ];
     }
 
+    protected array $pushedAttributes = [];
+
+    public function load($data, $formName = null): bool
+    {
+        if (!empty($data)) {
+            $this->pushedAttributes = array_keys($formName === '' ? $data : ($data[$formName] ?? []));
+        }
+        return parent::load($data, $formName);
+    }
+
     public function validateOnUpdate($attribute): void
     {
-        $postData = Yii::$app->request->post();
-
-        if (array_key_exists($attribute, $postData) && ($this->$attribute === '' || $this->$attribute === null)) {
+        if (in_array($attribute, $this->pushedAttributes) && ($this->$attribute === '' || $this->$attribute === null)) {
             $this->addError($attribute, $this->getAttributeLabel($attribute) . ' cannot be blank.');
         }
+    }
+
+    public function getPushedAttributes(): array
+    {
+        return $this->pushedAttributes;
     }
 }

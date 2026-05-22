@@ -2,13 +2,24 @@
 
 namespace app\helpers;
 
+use yii\base\Model;
+
 class AttributeHelper
 {
-    public static function filter(array $attributes): array
+    public static function map(Model $model, Model $form, array $pushedAttributes = []): void
     {
-        return array_filter(
-            $attributes,
-            fn($v) => !in_array($v, [null, '', [], ['']], true)
-        );
+        if (empty($pushedAttributes)) {
+            $attributesToMap = $form->safeAttributes();
+        } else {
+            $attributesToMap = $pushedAttributes;
+        }
+
+        foreach ($attributesToMap as $name) {
+            if ($name === 'id') continue;
+
+            if ($form->hasProperty($name) && $model->canSetProperty($name) && $form->isAttributeSafe($name)) {
+                $model->$name = $form->$name;
+            }
+        }
     }
 }

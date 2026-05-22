@@ -4,7 +4,6 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use yii\db\Expression;
 use app\models\Category;
 use app\models\response\CategoryResponse;
 
@@ -79,23 +78,9 @@ class CategorySearch extends Category
         ]);
 
         if ($this->key !== null && $this->key !== '') {
-            $key = self::normalizeKeyword((string) $this->key);
-            $query->andFilterWhere([
-                'like',
-                new Expression("REPLACE(LOWER([[name]]), ' ', '')"),
-                $key,
-            ]);
+             $query->andFilterWhere(['like', 'name', $this->key]);
         }
 
         return $dataProvider;
-    }
-
-    public static function normalizeKeyword($text)
-    {
-        $text = strtolower($text);
-
-        $text = str_replace(' ', '', $text);
-
-        return $text;
     }
 }

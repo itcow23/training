@@ -49,6 +49,10 @@ abstract class BaseController extends Controller
         );
     }
 
+    protected function defaultRelations(): array
+    {
+        return [];
+    }
 
     protected function findModelByClass(string $class, $id, ?array $with = null): Model
     {
@@ -59,7 +63,7 @@ abstract class BaseController extends Controller
         $arClass = $class;
         $query = $arClass::find()->where(['id' => $id]);
 
-        $relations = $with ?? (self::MODEL_DEFAULT_RELATIONS[$arClass] ?? []);
+         $relations = $with ?? $this->defaultRelations();
         if ($relations !== []) {
             $query->with($relations);
         }
@@ -120,7 +124,7 @@ abstract class BaseController extends Controller
     protected function modelErrorResponse($models, string $message = 'Validation failed', int $statusCode = 422): array
     {
         $errorData = [];
-        
+
         $modelsArray = [];
         if (is_array($models)) {
             $modelsArray = $models;
@@ -153,12 +157,12 @@ abstract class BaseController extends Controller
     {
         $models = $dataProvider->getModels();
         $totalCount = (int) $dataProvider->getTotalCount();
-        
+
         $pagination = $dataProvider->getPagination();
-        
+
         $page = 1;
         $pageSize = count($models);
-        
+
         $pageCount = 1;
         if ($totalCount === 0) {
             $pageCount = 0;

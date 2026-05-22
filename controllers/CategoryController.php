@@ -16,10 +16,15 @@ class CategoryController extends BaseController
 {
     private CategoryService $categoryService;
 
-    public function init()
+    public function __construct($id, $module, $config = [])
     {
-        parent::init();
         $this->categoryService = new CategoryService();
+        parent::__construct($id, $module, $config);
+    }
+
+    protected function defaultRelations(): array
+    {
+        return ['products', 'media'];
     }
 
     /**

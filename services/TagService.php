@@ -2,6 +2,7 @@
 
 namespace app\services;
 
+use app\helpers\AttributeHelper;
 use app\models\forms\TagForm;
 use app\models\response\TagResponse;
 use RuntimeException;
@@ -38,7 +39,7 @@ class TagService
             }
 
             $transaction->commit();
-            return $model;
+            return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -48,9 +49,7 @@ class TagService
 
     private function assignAttributes(TagResponse $model, TagForm $form): void
     {
-        $attributes = $form->getAttributes([
-            'name'
-        ]);
+        $attributes = AttributeHelper::filter($form->getAttributes());
 
         $model->setAttributes($attributes, false);
 
