@@ -50,7 +50,8 @@ class CategoryService
     private function assignAttributes(Category $model, CategoryForm $form): void
     {
 
-        AttributeHelper::map($model, $form, $form->getPushedAttributes());
+        $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
+        AttributeHelper::map($model, $form, $pushed);
 
         if ($form->image !== null) {
             $model->image = $form->image;

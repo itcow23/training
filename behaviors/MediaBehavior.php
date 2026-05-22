@@ -37,54 +37,44 @@ class MediaBehavior extends Behavior
             return;
         }
 
-        $transaction = Yii::$app->db->beginTransaction();
 
-        try {
+        $folder = $model->tableName();
 
-            $folder = $model->tableName();
+        if (!empty($removed)) {
+            $removeMedias = Media::find()
+                ->where(['id' => $removed])
+                ->all();
 
-            if (!empty($removed)) {
-                $removeMedias = Media::find()
-                    ->where(['id' => $removed])
-                    ->all();
-
-                if (empty($removeMedias)) {
-                    throw new RuntimeException("Media not found.");
-                }
-
-                foreach ($removeMedias as $media) {
-                    Yii::$app->media->delete($media->filepath);
-                    $media->delete();
-                }
+            if (empty($removeMedias)) {
+                throw new RuntimeException("Media not found.");
             }
 
-            if (!empty($files)) {
+            foreach ($removeMedias as $media) {
+                Yii::$app->media->delete($media->filepath);
+                $media->delete();
+            }
+        }
 
-                foreach ($files as $file) {
+        if (!empty($files)) {
 
-                    $uploaded = Yii::$app->media->upload($file, $folder);
+            foreach ($files as $file) {
 
-                    if (!$uploaded) {
-                        throw new RuntimeException('Failed to upload image.');
-                    }
+                $uploaded = Yii::$app->media->upload($file, $folder);
 
-                    $media = new Media();
-                    $media->file_id = $model->id;
-                    $media->file_type = $model->tableName();
-                    $media->collection = $this->collection;
-                    $media->filepath = $uploaded['url'];
+                if (!$uploaded) {
+                    throw new RuntimeException('Failed to upload image.');
+                }
 
-                    if (!$media->save()) {
-                        throw new RuntimeException('Failed to save media information.');
-                    }
+                $media = new Media();
+                $media->file_id = $model->id;
+                $media->file_type = $model->tableName();
+                $media->collection = $this->collection;
+                $media->filepath = $uploaded['url'];
+
+                if (!$media->save()) {
+                    throw new RuntimeException('Failed to save media information.');
                 }
             }
-
-            $transaction->commit();
-        } catch (\Throwable $e) {
-            $transaction->rollBack();
-            Yii::error($e->getMessage());
-            throw $e;
         }
     }
 

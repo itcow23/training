@@ -21,7 +21,7 @@ class ProductForm extends BaseForm
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'description', 'discount', 'image'];
+        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'description', 'discount', 'status', 'image'];
         $scenarios[self::SCENARIO_UPDATE] = ['category_id', 'name', 'price', 'status', 'description', 'discount', 'image', 'removed_image'];
         return $scenarios;
     }
@@ -29,13 +29,16 @@ class ProductForm extends BaseForm
     public function rules()
     {
         $rules = [
+            [['category_id'], 'exist', 'targetClass' => \app\models\Category::class, 'targetAttribute' => ['category_id' => 'id']],
             [['category_id', 'name', 'price'], 'required', 'on' => self::SCENARIO_CREATE],
             [['category_id', 'name', 'price'], 'validateOnUpdate', 'on' => self::SCENARIO_UPDATE, 'skipOnEmpty' => false],
-            [['category_id', 'status', 'discount'], 'integer'],
+            [['category_id', 'status'], 'integer'],
             [['status'], 'default', 'value' => 1],
+            [['status'], 'in', 'range' => [0, 1]],
             [['name'], 'string', 'max' => 255],
             [['price'], 'number', 'min' => 0],
             [['description'], 'string'],
+            [['discount'], 'integer', 'min' => 0, 'max' => 100],
         ];
 
 

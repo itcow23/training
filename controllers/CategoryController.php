@@ -14,11 +14,12 @@ use yii\web\UploadedFile;
  */
 class CategoryController extends BaseController
 {
-    private CategoryService $categoryService;
 
-    public function __construct($id, $module, $config = [])
+    private CategoryService $categoryService;
+    
+    public function __construct($id, $module, CategoryService $categoryService, $config = [])
     {
-        $this->categoryService = new CategoryService();
+        $this->categoryService = $categoryService;
         parent::__construct($id, $module, $config);
     }
 

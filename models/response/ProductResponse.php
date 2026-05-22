@@ -18,7 +18,7 @@ class ProductResponse extends Product
             'description',
             'discount',
             'category' => function ($model){
-               return $model->category->name;
+               return $model->category ? $model->category->name : null;
             },
             'media' => function ($model){
                 return array_map(function ($media) {

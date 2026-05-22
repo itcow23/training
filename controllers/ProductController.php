@@ -8,6 +8,7 @@ use app\models\response\ProductResponse;
 use app\models\search\ProductSearch;
 use yii\web\NotFoundHttpException;
 use app\services\ProductService;
+use yii\web\UploadedFile;
 
 /**
  * ProductController implements the CRUD actions for Product model.
@@ -15,11 +16,11 @@ use app\services\ProductService;
 class ProductController extends BaseController
 {
     private ProductService $productService;
-
-    public function init()
+    
+    public function __construct($id, $module, ProductService $productService, $config = [])
     {
-        $this->productService = new ProductService();
-        return parent::init();
+        $this->productService = $productService;
+        parent::__construct($id, $module, $config);
     }
 
     /**
@@ -69,6 +70,7 @@ class ProductController extends BaseController
         $form = new ProductForm(['scenario' => ProductForm::SCENARIO_CREATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
+             $form->image = UploadedFile::getInstancesByName('image');
             if ($this->productService->create($model, $form)) {
                 return $this->successResponse(
                     ['model' => $this->findModel($model->id, [])],
@@ -96,6 +98,7 @@ class ProductController extends BaseController
         $form = new ProductForm(['scenario' => ProductForm::SCENARIO_UPDATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
+            $form->image = UploadedFile::getInstancesByName('image');
             if ($this->productService->update($model, $form)) {
                 return $this->successResponse(
                     ['model' => $this->findModel($model->id, [])],

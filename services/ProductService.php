@@ -4,15 +4,14 @@ namespace app\services;
 
 use app\helpers\AttributeHelper;
 use app\models\forms\ProductForm;
-use app\models\response\ProductResponse;
+use app\models\Product;
 use RuntimeException;
 use Throwable;
 use Yii;
-use yii\web\UploadedFile;
 
 class ProductService
 {
-    public function create(ProductResponse $model, ProductForm $form)
+    public function create(Product $model, ProductForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -20,7 +19,7 @@ class ProductService
         return $this->save($model, $form);
     }
 
-    public function update(ProductResponse $model, ProductForm $form)
+    public function update(Product $model, ProductForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -28,12 +27,11 @@ class ProductService
         return $this->save($model, $form);
     }
 
-    private function save(ProductResponse $model, ProductForm $form)
+    private function save(Product $model, ProductForm $form)
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $this->assignAttributes($model, $form);
-            $model->image = UploadedFile::getInstancesByName('image');
 
             if (!$model->save()) {
                 $transaction->rollBack();
@@ -49,22 +47,20 @@ class ProductService
         }
     }
 
-    private function assignAttributes(ProductResponse $model, ProductForm $form): void
+    private function assignAttributes(Product $model, ProductForm $form): void
     {
-        $attributes = AttributeHelper::filter($form->getAttributes());
+        $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
+        AttributeHelper::map($model, $form, $pushed);
 
-        $model->setAttributes($attributes, false);
-
-        if (isset($attributes['removed_image'])) {
-            $model->removed_image = $attributes['removed_image'];
+        if ($form->image !== null) {
+            $model->image = $form->image;
         }
-
-        if (isset($attributes['image'])) {
-            $model->image = $attributes['image'];
+        if ($form->removed_image !== null) {
+            $model->removed_image = $form->removed_image;
         }
     }
 
-    public function delete(ProductResponse $model): bool
+    public function delete(Product $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
