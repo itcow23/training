@@ -43,7 +43,7 @@ class PostSearch extends PostResponse
      */
     public function search($params, $formName = null)
     {
-        $query = PostResponse::find()->with(['comments','ratings','media','tags']);
+        $query = PostResponse::find()->with(['comments','media','tags']);
 
 
 

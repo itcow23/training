@@ -49,10 +49,8 @@ class TagService
 
     private function assignAttributes(TagResponse $model, TagForm $form): void
     {
-        $attributes = AttributeHelper::filter($form->getAttributes());
-
-        $model->setAttributes($attributes, false);
-
+        $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
+        AttributeHelper::map($model, $form, $pushed);
     }
 
     public function delete(TagResponse $model): bool

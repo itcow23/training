@@ -22,11 +22,7 @@ class PostResponse extends Post
                 return count($model->comments);
             },
             'rating' => function ($model) {
-                return round(
-                    array_sum(array_column($model->ratings, 'score'))
-                        / (count($model->ratings) ?: 1),
-                    1
-                );
+                return $model->avg_rating;
             },
             'media' => function ($model) {
                 return array_map(function ($media) {

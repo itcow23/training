@@ -4,15 +4,14 @@ namespace app\services;
 
 use app\helpers\AttributeHelper;
 use app\models\forms\PostCategoryForm;
-use app\models\response\PostCategoryResponse;
+use app\models\PostCategory;
 use RuntimeException;
 use Throwable;
 use Yii;
-use yii\web\UploadedFile;
 
 class PostCategoryService
 {
-    public function create(PostCategoryResponse $model, PostCategoryForm $form)
+    public function create(PostCategory $model, PostCategoryForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -20,7 +19,7 @@ class PostCategoryService
         return $this->save($model, $form);
     }
 
-    public function update(PostCategoryResponse $model, PostCategoryForm $form)
+    public function update(PostCategory $model, PostCategoryForm $form)
     {
         if (!$form->validate()) {
             return false;
@@ -28,7 +27,7 @@ class PostCategoryService
         return $this->save($model, $form);
     }
 
-    private function save(PostCategoryResponse $model, PostCategoryForm $form)
+    private function save(PostCategory $model, PostCategoryForm $form)
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
@@ -40,10 +39,7 @@ class PostCategoryService
             }
 
             $transaction->commit();
-            return PostCategoryResponse::find()
-                ->where(['id' => $model->id])
-                ->with(['posts'])
-                ->one();
+            return true;
         } catch (Throwable $e) {
             $transaction->rollBack();
             $model->addError('error', $e->getMessage());
@@ -51,15 +47,14 @@ class PostCategoryService
         }
     }
 
-    private function assignAttributes(PostCategoryResponse $model, PostCategoryForm $form): void
+    private function assignAttributes(PostCategory $model, PostCategoryForm $form): void
     {
-       $attributes = AttributeHelper::filter($form->getAttributes());
-
-        $model->setAttributes($attributes, false);
+        $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
+        AttributeHelper::map($model, $form, $pushed);
 
     }
 
-    public function delete(PostCategoryResponse $model): bool
+    public function delete(PostCategory $model): bool
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {

@@ -56,16 +56,13 @@ class PostService
 
     private function assignAttributes(PostResponse $model, PostForm $form): void
     {
-       $attributes = AttributeHelper::filter($form->getAttributes());
-
-        $model->setAttributes($attributes, false);
-
-        if (isset($attributes['removed_image'])) {
-            $model->removed_image = $attributes['removed_image'];
+        $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
+        AttributeHelper::map($model, $form, $pushed);
+        if ($form->image !== null) {
+            $model->image = $form->image;
         }
-
-        if (isset($attributes['image'])) {
-            $model->image = $attributes['image'];
+        if ($form->removed_image !== null) {
+            $model->removed_image = $form->removed_image;
         }
     }
 

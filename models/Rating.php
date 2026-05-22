@@ -2,7 +2,6 @@
 
 namespace app\models;
 
-use Override;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -21,19 +20,35 @@ use yii\behaviors\TimestampBehavior;
 class Rating extends \yii\db\ActiveRecord
 {
 
-    #[Override]
     public function behaviors()
     {
         return [
             'timestamps' => [
                 'class' => TimestampBehavior::class,
-                'value'=> function (){
+                'value' => function () {
                     return date('Y-m-d H:i:s');
                 }
             ],
         ];
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->updatePostAvgRating();
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        $this->updatePostAvgRating();
+    }
+
+    protected function updatePostAvgRating()
+    {
+        $avg = self::find()->where(['post_id' => $this->post_id])->average('score');
+        Post::updateAll(['avg_rating' => round($avg ?: 0, 1)], ['id' => $this->post_id]);
+    }
 
     /**
      * Gets query for [[Account]].
@@ -54,5 +69,4 @@ class Rating extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Post::class, ['id' => 'post_id']);
     }
-
 }
