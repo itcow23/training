@@ -3,6 +3,7 @@
 namespace app\models\forms;
 
 use app\models\forms\BaseForm;
+use app\models\Post;
 
 class CommentForm extends BaseForm
 {
@@ -23,6 +24,7 @@ class CommentForm extends BaseForm
     public function rules()
     {
         return [
+            [['post_id'], 'exist', 'targetClass' => Post::class, 'targetAttribute' => 'id'],
             [['account_id', 'post_id', 'content'], 'required'],
             [['account_id', 'post_id'], 'integer'],
             [['content'], 'string'],

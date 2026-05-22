@@ -2,6 +2,7 @@
 
 namespace app\models\forms;
 
+use app\models\Account;
 use app\models\forms\BaseForm;
 
 class OrderForm extends BaseForm
@@ -34,6 +35,7 @@ class OrderForm extends BaseForm
     public function rules()
     {
         return [
+            [['account_id'], 'exist', 'targetClass' => Account::class, 'targetAttribute' => 'id'],
             [['account_id', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'pay_method', 'products'], 'required'],
             [['account_id', 'membership_level_id', 'pay_method', 'status'], 'integer'],
             [['discount', 'shipping_fee',], 'number'],
@@ -41,7 +43,8 @@ class OrderForm extends BaseForm
             [['shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address'], 'string', 'max' => 255],
             [['shipping_email'], 'email'],
             [['status'], 'default', 'value' => 1],
-            ['products', 'validateProducts', 'on' => self::SCENARIO_CREATE],
+            [['status'], 'in', 'range' => [1, 2, 3, 4]],
+            [['products'], 'validateProducts', 'on' => self::SCENARIO_CREATE],
         ];
     }
 

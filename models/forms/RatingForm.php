@@ -3,6 +3,7 @@
 namespace app\models\forms;
 
 use app\models\forms\BaseForm;
+use app\models\Post;
 
 class RatingForm extends BaseForm
 {
@@ -21,10 +22,9 @@ class RatingForm extends BaseForm
     public function rules()
     {
         return [
+            [['post_id'], 'exist', 'targetClass' => Post::class, 'targetAttribute' => 'id'],
             [['post_id', 'account_id', 'score'], 'required'],
-
             [['post_id', 'account_id'], 'integer'],
-
             ['score', 'integer', 'min' => 1, 'max' => 5],
         ];
     }

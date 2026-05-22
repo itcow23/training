@@ -42,6 +42,7 @@ class BaseForm extends Model
                 'maxFiles' => $maxFiles,
                 'extensions' => 'jpg, jpeg, png, webp',
                 'mimeTypes' => 'image/jpeg, image/png, image/webp',
+                 'maxSize' => 5 * 1024 * 1024,
             ],
         ];
     }

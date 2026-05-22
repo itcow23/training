@@ -2,6 +2,7 @@
 
 namespace app\models\forms;
 
+use app\models\PostCategory;
 
 class PostForm extends BaseForm
 {
@@ -29,6 +30,7 @@ class PostForm extends BaseForm
     {
 
         $base = [
+            [['category_id'], 'exist', 'targetClass' => PostCategory::class, 'targetAttribute' => 'id'],
             [['title', 'content', 'category_id'], 'required', 'on' => self::SCENARIO_CREATE],
             [['title', 'content', 'category_id'], 'validateOnUpdate', 'on' => self::SCENARIO_UPDATE],
             [['description', 'content'], 'string'],
@@ -36,6 +38,7 @@ class PostForm extends BaseForm
             [['status', 'category_id'], 'integer'],
             [['title'], 'string', 'max' => 255],
             [['status'], 'default', 'value' => 0],
+            [['status'], 'in', 'range' => [0, 1]],
             [['removed_image', 'add_tag', 'removed_tag'], 'validateArray'],
             [['add_tag', 'removed_tag'], 'each', 'rule' => ['integer']],
         ];
