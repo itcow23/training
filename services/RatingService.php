@@ -4,7 +4,6 @@ namespace app\services;
 
 use app\helpers\AttributeHelper;
 use app\models\forms\RatingForm;
-use app\models\Post;
 use app\models\Rating;
 use RuntimeException;
 use Throwable;
@@ -36,7 +35,7 @@ class RatingService
             if (!$model->save()) {
                 throw new RuntimeException('Save error');
             }
-        
+
             $transaction->commit();
             return $model;
         } catch (Throwable $e) {

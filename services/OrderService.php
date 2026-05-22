@@ -6,6 +6,7 @@ use app\helpers\AttributeHelper;
 use Throwable;
 use RuntimeException;
 use app\models\forms\OrderForm;
+use app\models\MembershipLevel;
 use app\models\response\OrderResponse;
 use Yii;
 use app\models\Product;
@@ -70,17 +71,17 @@ class OrderService
         $pushed = $model->isNewRecord ? [] : $form->getPushedAttributes();
         AttributeHelper::map($model, $form, $pushed);
     }
-    
+
     private function calculateSubtotal($products)
     {
         $subtotal = 0;
 
-        $productIds = array_column($products,'product_id');
+        $productIds = array_column($products, 'product_id');
 
         $productList = Product::find()
-                        ->where(['id' => $productIds])
-                        ->indexBy('id')
-                        ->all();
+            ->where(['id' => $productIds])
+            ->indexBy('id')
+            ->all();
         foreach ($products as $item) {
             if (!isset($productList[$item['product_id']])) {
                 throw new RuntimeException('Product does not exist.');
@@ -96,15 +97,22 @@ class OrderService
         ];
     }
 
-    private function calculateDiscount($subtotal, $membershipLevelId)
+    private function calculateDiscount(float $subtotal, ?int $membershipLevelId): float
     {
+        if (!$membershipLevelId) {
+            return 0;
+        }
 
-        return match ((int)$membershipLevelId) {
-            1 => $subtotal * 0.1,
-            2 => $subtotal * 0.2,
-            3 => $subtotal * 0.3,
-            default => 0
-        };
+        $discountRate = MembershipLevel::find()
+            ->select('discount_rate')
+            ->where(['id' => $membershipLevelId])
+            ->scalar();
+
+        if (!$discountRate) {
+            return 0;
+        }
+
+        return $subtotal * ($discountRate / 100);
     }
 
     public function delete(OrderResponse $model)
