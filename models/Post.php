@@ -46,6 +46,8 @@ class Post extends \yii\db\ActiveRecord
     public $removed_image;
     public $add_tag;
     public $removed_tag;
+    public $add_product;
+    public $removed_product;
 
     public function behaviors()
     {
@@ -85,8 +87,8 @@ class Post extends \yii\db\ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'category_id', 'image', 'add_tag'];
-        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'removed_tag'];
+        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'category_id', 'image', 'add_tag', 'add_product'];
+        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'removed_tag', 'add_product', 'removed_product'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
         return $scenarios;
     }
@@ -112,7 +114,7 @@ class Post extends \yii\db\ActiveRecord
                 'maxSize' => 5 * 1024 * 1024,
             ],
             [['removed_image'], 'each', 'rule' => ['integer']],
-            [['add_tag', 'removed_tag'], 'each', 'rule' => ['integer']],
+            [['add_tag', 'removed_tag', 'add_product', 'removed_product'], 'each', 'rule' => ['integer']],
         ];
     }
 
@@ -120,26 +122,41 @@ class Post extends \yii\db\ActiveRecord
     {
         parent::afterSave($insert, $changedAttributes);
 
-        if (!empty($this->removed_tag) && is_array($this->removed_tag)) {
-            PostTag::deleteAll(['post_id' => $this->id, 'tag_id' => $this->removed_tag]);
+        $this->syncRelation(PostTag::class, 'tag_id', $this->add_tag, $this->removed_tag);
+
+        $this->syncRelation(PostProduct::class, 'product_id', $this->add_product, $this->removed_product);
+    }
+
+    protected function syncRelation(string $modelClass, string $fkTargetColumn, ?array $addIds, ?array $removedIds)
+    {
+        if (!empty($removedIds) && is_array($removedIds)) {
+            $modelClass::deleteAll(['post_id' => $this->id, $fkTargetColumn => $removedIds]);
         }
 
-        if (!empty($this->add_tag) && is_array($this->add_tag)) {
-            $existingTagIds = PostTag::find()
-                ->select(['tag_id'])
+        if (!empty($addIds) && is_array($addIds)) {
+            $existingIds = $modelClass::find()
+                ->select([$fkTargetColumn])
                 ->where(['post_id' => $this->id])
                 ->column();
 
-            $newTagIds = array_diff($this->add_tag, $existingTagIds);
+            $newIds = array_diff($addIds, $existingIds);
 
             $rows = [];
-            foreach ($newTagIds as $tagId) {
-                $rows[] = [$this->id, $tagId];
+            $tableName = $modelClass::tableName();
+            $hasCreatedAt = $modelClass::getTableSchema()->getColumn('created_at') !== null;
+
+            foreach ($newIds as $targetId) {
+                if ($hasCreatedAt) {
+                    $rows[] = [$this->id, $targetId, date('Y-m-d H:i:s')];
+                } else {
+                    $rows[] = [$this->id, $targetId];
+                }
             }
 
             if (!empty($rows)) {
+                $columns = $hasCreatedAt ? ['post_id', $fkTargetColumn, 'created_at'] : ['post_id', $fkTargetColumn];
                 Yii::$app->db->createCommand()
-                    ->batchInsert(PostTag::tableName(), ['post_id', 'tag_id'], $rows)
+                    ->batchInsert($tableName, $columns, $rows)
                     ->execute();
             }
         }
@@ -178,6 +195,17 @@ class Post extends \yii\db\ActiveRecord
                         'name' => $tag->name
                     ];
                 }, $model->tags);
+            },
+            'products' => function ($model) {
+                return array_map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'price' => (float)$product->price,
+                        'discount' => (int)$product->discount,
+                        'slug' => $product->slug,
+                    ];
+                }, $model->products);
             },
         ];
     }
@@ -229,6 +257,11 @@ class Post extends \yii\db\ActiveRecord
     public function getPostProducts()
     {
         return $this->hasMany(PostProduct::class, ['post_id' => 'id']);
+    }
+
+    public function getProducts()
+    {
+        return $this->hasMany(Product::class, ['id' => 'product_id'])->viaTable('post_product', ['post_id' => 'id']);
     }
 
     /**

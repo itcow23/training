@@ -124,6 +124,16 @@ class Product extends \yii\db\ActiveRecord
                         'path' => $media->filepath
                     ];
                 }, $model->media);
+            },
+            'posts' => function ($model) {
+                return array_map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'slug' => $post->slug,
+                        'published_at' => $post->published_at
+                    ];
+                }, $model->posts);
             }
         ];
     }
@@ -175,6 +185,11 @@ class Product extends \yii\db\ActiveRecord
     public function getPostProducts()
     {
         return $this->hasMany(PostProduct::class, ['product_id' => 'id']);
+    }
+
+    public function getPosts()
+    {
+        return $this->hasMany(Post::class, ['id' => 'post_id'])->viaTable('post_product', ['product_id' => 'id']);
     }
 
     public function getMedia()
