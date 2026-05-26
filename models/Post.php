@@ -173,7 +173,7 @@ class Post extends \yii\db\ActiveRecord
             'status',
             'published_at',
             'comment' => function ($model) {
-                return count($model->comments);
+                return (int)$model->getComments()->count();
             },
             'rating' => function ($model) {
                 return $model->avg_rating;
@@ -285,10 +285,9 @@ class Post extends \yii\db\ActiveRecord
         return $this->hasMany(Rating::class, ['post_id' => 'id']);
     }
 
-
       public function getMedia()
     {
-        return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'post']);
+        return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'post']);
     }
 
     public function transactions()

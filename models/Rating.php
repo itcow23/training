@@ -76,7 +76,7 @@ class Rating extends \yii\db\ActiveRecord
 
     protected function updatePostAvgRating()
     {
-        $avg = self::find()->where(['post_id' => $this->post_id])->average('score');
+        $avg = self::find()->andWhere(['post_id' => $this->post_id])->average('score');
         Post::updateAll(['avg_rating' => round($avg ?: 0, 1)], ['id' => $this->post_id]);
     }
 

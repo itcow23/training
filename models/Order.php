@@ -81,14 +81,18 @@ class Order extends \yii\db\ActiveRecord
         ];
     }
 
-    public function generateOrderCode()
+    public function generateOrderCode(int $attempts = 0): void
     {
+        if ($attempts >= 10) {
+            throw new \RuntimeException('Cannot generate a unique order code after 10 attempts.');
+        }
+
         $date = date('YmdHi');
         $random = strtoupper(Yii::$app->security->generateRandomString(4));
         $this->order_code = "ORD{$date}{$random}";
 
-        if (self::find()->where(['order_code' => $this->order_code])->exists()) {
-            return $this->generateOrderCode();
+        if (self::find()->andWhere(['order_code' => $this->order_code])->exists()) {
+            $this->generateOrderCode($attempts + 1);
         }
     }
 

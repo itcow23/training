@@ -60,6 +60,18 @@ class ProductQuery extends \yii\db\ActiveQuery
         ]);
     }
 
+    public function withActiveCategory()
+    {
+        return $this->joinWith('category', false)
+            ->andWhere(['category.status' => 1])
+            ->andWhere(['category.is_deleted' => 0]);
+    }
+
+    public function byCategory($category)
+    {
+        return $this->andWhere(['product.category_id' => $category]);
+    }
+
     public function keyword(?string $keyword)
     {
         return $this->andFilterWhere([

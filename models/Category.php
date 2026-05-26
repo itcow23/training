@@ -145,7 +145,7 @@ class Category extends \yii\db\ActiveRecord
      */
     public function getMedia()
     {
-        return $this->hasMany(Media::class, ['file_id' => 'id'])->where(['file_type' => 'category']);
+        return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'category']);
     }
 
     public function transactions()
@@ -158,12 +158,12 @@ class Category extends \yii\db\ActiveRecord
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        
+
         if (!$insert && isset($changedAttributes['is_deleted']) && $this->is_deleted == 1) {
-            
-            foreach ($this->products as $product) {
-                $product->softDelete();
-            }
+            Product::updateAll(
+                ['is_deleted' => 1, 'deleted_at' => date('Y-m-d H:i:s')],
+                ['category_id' => $this->id, 'is_deleted' => 0]
+            );
         }
     }
 

@@ -26,7 +26,12 @@ class SoftDeleteBehavior extends Behavior
             $model->{$this->deletedAtAttribute} = date('Y-m-d H:i:s');
         }
 
-        return $model->save(false);
+        if (!$model->save(false)) {
+            $model->addError($this->deletedAttribute, 'Could not soft delete the record.');
+            return false;
+        }
+
+        return true;
     }
 
     public function restore(): bool
@@ -38,7 +43,12 @@ class SoftDeleteBehavior extends Behavior
             $model->{$this->deletedAtAttribute} = null;
         }
 
-        return $model->save(false);
+        if (!$model->save(false)) {
+            $model->addError($this->deletedAttribute, 'Could not restore the record.');
+            return false;
+        }
+
+        return true;
     }
 
     public function handleBeforeDelete($event)

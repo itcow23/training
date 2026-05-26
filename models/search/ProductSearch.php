@@ -47,10 +47,11 @@ class ProductSearch extends Product
     {
         $query = Product::find()
             ->withRelations()
-            ->joinWith('category', false)
-            ->andWhere(['category.status' => 1])
-            ->andWhere(['category.is_deleted' => 0]);
+            ->withActiveCategory();
 
+        if (!empty($this->category_id)) {
+            $query->byCategory($this->category_id);
+        }
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -77,7 +78,6 @@ class ProductSearch extends Product
         // grid filtering conditions
         $query->andFilterWhere([
             'product.id' => $this->id,
-            'product.category_id' => $this->category_id,
             'product.price' => $this->price,
             'product.status' => $this->status,
             'product.discount' => $this->discount,
