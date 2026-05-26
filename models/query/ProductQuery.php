@@ -41,4 +41,28 @@ class ProductQuery extends \yii\db\ActiveQuery
     {
         return $this->andWhere(['status' => 0]);
     }
+
+    public function withRelations()
+    {
+        return $this->with([
+            'category',
+            'media',
+        ]);
+    }
+
+     public function byId($id)
+    {
+        return $this->andWhere([
+            'id' => $id,
+        ]);
+    }
+
+    public function keyword(?string $keyword)
+    {
+        return $this->andFilterWhere([
+            'like',
+            'name',
+            $keyword,
+        ]);
+    }
 }

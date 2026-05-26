@@ -5,7 +5,6 @@ namespace app\models\search;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Order;
-use app\models\response\OrderResponse;
 
 /**
  * OrderSearch represents the model behind the search form of `app\models\Order`.
@@ -45,9 +44,7 @@ class OrderSearch extends Order
      */
     public function search($params, $formName = null)
     {
-        $query = OrderResponse::find()->with([
-            'orderItems.product'
-        ]);
+        $query = Order::find()->withRelations();
 
         // add conditions that should always apply here
 
@@ -93,9 +90,7 @@ class OrderSearch extends Order
             ->andFilterWhere(['like', 'shipping_address', $this->shipping_address])
             ->andFilterWhere(['like', 'status', $this->status]);
 
-        if (!empty($this->key)) {
-            $query->andFilterWhere(['like', 'order_code', $this->key]);
-        }
+        $query->keyword($this->key);
 
         return $dataProvider;
     }

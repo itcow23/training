@@ -2,9 +2,9 @@
 
 namespace app\models;
 
-use Override;
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use app\models\Post;
 
 /**
  * This is the model class for table "comment".
@@ -19,10 +19,30 @@ use yii\behaviors\TimestampBehavior;
  * @property Account $account
  * @property Post $post
  */
+
 class Comment extends \yii\db\ActiveRecord
 {
+    const SCENARIO_CREATE = 'create';
+    const SCENARIO_UPDATE = 'update';
 
-    #[Override]
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['account_id', 'post_id', 'content'];
+        $scenarios[self::SCENARIO_UPDATE] = ['content'];
+        return $scenarios;
+    }
+
+    public function rules()
+    {
+        return [
+            [['post_id'], 'exist', 'targetClass' => Post::class, 'targetAttribute' => 'id'],
+            [['account_id', 'post_id', 'content'], 'required'],
+            [['account_id', 'post_id'], 'integer'],
+            [['content'], 'string'],
+        ];
+    }
+
     public function behaviors()
     {
         return[

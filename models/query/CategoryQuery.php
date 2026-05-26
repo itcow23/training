@@ -2,34 +2,45 @@
 
 namespace app\models\query;
 
-/**
- * This is the ActiveQuery class for [[\app\models\Category]].
- *
- * @see \app\models\Category
- */
-class CategoryQuery extends \yii\db\ActiveQuery
+use yii\db\ActiveQuery;
+
+class CategoryQuery extends ActiveQuery
 {
-    /*public function active()
+    public function active()
     {
-        return $this->andWhere('[[status]]=1');
-    }*/
-
-    /**
-     * {@inheritdoc}
-     * @return \app\models\Category[]|array
-     */
-    public function all($db = null)
-    {
-        return parent::all($db);
+        return $this->andWhere([
+            'status' => 1,
+        ]);
     }
 
-    /**
-     * {@inheritdoc}
-     * @return \app\models\Category|array|null
-     */
-    public function one($db = null)
+    public function latest()
     {
-        return parent::one($db);
+        return $this->orderBy([
+            'id' => SORT_DESC,
+        ]);
     }
 
+    public function withRelations()
+    {
+        return $this->with([
+            'products',
+            'media',
+        ]);
+    }
+
+    public function byId($id)
+    {
+        return $this->andWhere([
+            'id' => $id,
+        ]);
+    }
+
+    public function keyword(?string $keyword)
+    {
+        return $this->andFilterWhere([
+            'like',
+            'name',
+            $keyword,
+        ]);
+    }
 }

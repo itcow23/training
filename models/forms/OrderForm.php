@@ -4,6 +4,7 @@ namespace app\models\forms;
 
 use app\models\Account;
 use app\models\forms\BaseForm;
+use Yii;
 
 class OrderForm extends BaseForm
 {
@@ -42,8 +43,9 @@ class OrderForm extends BaseForm
             [['discount', 'shipping_fee',], 'default', 'value' => 0],
             [['shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address'], 'string', 'max' => 255],
             [['shipping_email'], 'email'],
+            [['status'], 'required', 'on' => self::SCENARIO_UPDATE],
             [['status'], 'default', 'value' => 1],
-            [['status'], 'in', 'range' => [1, 2, 3, 4]],
+            [['status'], 'in', 'range' => [0, 1, 2, 3, 4]],
             [['products'], 'validateProducts', 'on' => self::SCENARIO_CREATE],
         ];
     }
@@ -97,5 +99,131 @@ class OrderForm extends BaseForm
                 continue;
             }
         }
+    }
+
+    public function save(\app\models\Order $model)
+    {
+        if (!$this->validate()) {
+            return false;
+        }
+
+        if ($this->scenario === self::SCENARIO_UPDATE) {
+            $newStatus = (int)$this->status;
+            $oldStatus = (int)$model->status;
+
+            if (!$this->validateStatusTransition($model, $oldStatus, $newStatus)) {
+                $this->addError('status', 'Invalid status transition.');
+                return false;
+            }
+
+            $model->status = $newStatus;
+
+            $transaction = Yii::$app->db->beginTransaction();
+            try {
+                if (!$model->save()) {
+                    throw new \RuntimeException(json_encode($model->errors));
+                }
+                $transaction->commit();
+                return $model;
+            } catch (\Throwable $e) {
+                $transaction->rollBack();
+                $this->addError('status', $e->getMessage());
+                return false;
+            }
+        }
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $model->account_id = $this->account_id;
+            $model->membership_level_id = $this->membership_level_id;
+            $model->shipping_name = $this->shipping_name;
+            $model->shipping_email = $this->shipping_email;
+            $model->shipping_phone = $this->shipping_phone;
+            $model->shipping_address = $this->shipping_address;
+            $model->pay_method = $this->pay_method;
+            $model->status = $this->status ?? 1;
+
+            if (empty($this->products)) {
+                throw new \RuntimeException('Products list is required.');
+            }
+
+            $subtotal = 0;
+            $productIds = array_column($this->products, 'product_id');
+            $productList = \app\models\Product::find()
+                ->where(['id' => $productIds])
+                ->indexBy('id')
+                ->all();
+
+            foreach ($this->products as $item) {
+                if (!isset($productList[$item['product_id']])) {
+                    throw new \RuntimeException('Product does not exist.');
+                }
+                $product = $productList[$item['product_id']];
+                $subtotal += $product->price * $item['quantity'];
+            }
+
+            $discountAmount = 0;
+            if ($model->membership_level_id) {
+                $discountRate = \app\models\MembershipLevel::find()
+                    ->select('discount_rate')
+                    ->where(['id' => $model->membership_level_id])
+                    ->scalar();
+
+                if ($discountRate) {
+                    $discountAmount = $subtotal * ($discountRate / 100);
+                }
+            }
+
+            $model->subtotal = $subtotal;
+            $model->discount = $discountAmount;
+            $model->shipping_fee = $this->shipping_fee ?? 0;
+            $model->final_total = $subtotal - $discountAmount + $model->shipping_fee;
+
+            if (!$model->save()) {
+                throw new \RuntimeException(json_encode($model->errors));
+            }
+
+            foreach ($this->products as $item) {
+                $product = $productList[$item['product_id']];
+                $detail = new \app\models\OrderItem();
+                $detail->order_id = $model->id;
+                $detail->product_id = $product->id;
+                $detail->quantity = $item['quantity'];
+                $detail->unit_price = $product->price;
+                $detail->total_price = $product->price * $item['quantity'];
+
+                if (!$detail->save()) {
+                    throw new \RuntimeException(json_encode($detail->errors));
+                }
+            }
+
+            $transaction->commit();
+            return $model;
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+            $this->addError('order', $e->getMessage());
+            return false;
+        }
+    }
+
+    private function validateStatusTransition($model, $oldStatus, $newStatus)
+    {
+        $allowedTransitions = [
+            $model::STATUS_PENDING => [
+                $model::STATUS_CONFIRM,
+                $model::STATUS_CANCEL
+            ],
+            $model::STATUS_CONFIRM => [
+                $model::STATUS_SHIPPING,
+                $model::STATUS_CANCEL
+            ],
+            $model::STATUS_SHIPPING => [
+                $model::STATUS_COMPLETED
+            ],
+            $model::STATUS_COMPLETED => [],
+            $model::STATUS_CANCEL => [],
+        ];
+
+        return in_array($newStatus, $allowedTransitions[$oldStatus] ?? []);
     }
 }

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use yii\behaviors\TimestampBehavior;
+use app\models\Post;
 
 /**
  * This is the model class for table "rating".
@@ -19,6 +20,25 @@ use yii\behaviors\TimestampBehavior;
  */
 class Rating extends \yii\db\ActiveRecord
 {
+    const SCENARIO_CREATE = 'create';
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['post_id', 'account_id', 'score'];
+        return $scenarios;
+    }
+
+    public function rules()
+    {
+        return [
+            [['post_id'], 'exist', 'targetClass' => Post::class, 'targetAttribute' => 'id'],
+            [['post_id', 'account_id', 'score'], 'required'],
+            [['post_id', 'account_id'], 'integer'],
+            ['score', 'integer', 'min' => 1, 'max' => 5],
+            [['post_id', 'account_id'], 'unique', 'targetAttribute' => ['post_id', 'account_id'], 'message' => 'You have already rated this post.'],
+        ];
+    }
 
     public function behaviors()
     {

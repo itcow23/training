@@ -2,8 +2,8 @@
 
 namespace app\models;
 
-use app\behaviors\SlugBehavior;
-use Yii;
+use app\models\query\TagQuery;
+use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -18,6 +18,34 @@ use yii\behaviors\TimestampBehavior;
  */
 class Tag extends \yii\db\ActiveRecord
 {
+    const SCENARIO_CREATE = 'create';
+    const SCENARIO_UPDATE = 'update';
+
+    public function scenarios()
+    { 
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['name'];
+        $scenarios[self::SCENARIO_UPDATE] = ['name'];
+        return $scenarios;
+    }
+
+    public function rules()
+    {
+        return [
+            [['name'], 'required'],
+            [['name'], 'trim'],
+            [['name'], 'string', 'min' => 1, 'max' => 255],
+            [['name'], 'unique'],
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'name',
+        ];
+    }
 
     public function behaviors()
     {
@@ -29,8 +57,11 @@ class Tag extends \yii\db\ActiveRecord
                 }
             ],
             'slug' => [
-                'class' => SlugBehavior::class,
-            ]
+                'class' => SluggableBehavior::class,
+                'ensureUnique' => true,
+                'immutable' => false,
+                'attribute' => 'name'
+            ],
         ];
     }
 
@@ -53,4 +84,9 @@ class Tag extends \yii\db\ActiveRecord
         return $this->hasMany(PostTag::class, ['tag_id' => 'id']);
     }
 
+    public static function find()
+    {
+        return new TagQuery(get_called_class());
+    }
 }
+

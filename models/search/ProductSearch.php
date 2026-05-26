@@ -5,7 +5,7 @@ namespace app\models\search;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Product;
-use app\models\response\ProductResponse;
+
 
 /**
  * ProductSearch represents the model behind the search form of `app\models\Product`.
@@ -45,9 +45,8 @@ class ProductSearch extends Product
      */
     public function search($params, $formName = null)
     {
-        $query = ProductResponse::find()->with(['media','category']);
+        $query = Product::find()->withRelations();
 
-        // add conditions that should always apply here
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -86,9 +85,8 @@ class ProductSearch extends Product
             ->andFilterWhere(['like', 'description', $this->description])
             ->andFilterWhere(['like', 'slug', $this->slug]);
 
-        if (!empty($this->key)) {
-            $query->andFilterWhere(['like', 'name', $this->key]);
-        }
+        $query->keyword($this->key);
+
         return $dataProvider;
     }
 }

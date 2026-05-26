@@ -70,4 +70,22 @@ class OrderQuery extends \yii\db\ActiveQuery
             default => $this
         };
     }
+
+    public function withRelations()
+    {
+        return $this->with([
+            'orderItems.product',
+        ]);
+    }
+
+    public function keyword(?string $keyword)
+    {
+        return $this->andFilterWhere([
+            'like',
+            'order_code',
+            $keyword,
+        ]);
+    }
 }
+
+

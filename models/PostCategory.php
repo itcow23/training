@@ -2,9 +2,9 @@
 
 namespace app\models;
 
-use app\behaviors\SlugBehavior;
 use app\models\query\PostCategoryQuery;
 use Override;
+use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
 
 /**
@@ -20,12 +20,63 @@ use yii\behaviors\TimestampBehavior;
  */
 class PostCategory extends \yii\db\ActiveRecord
 {
+    const SCENARIO_CREATE = 'create';
+    const SCENARIO_UPDATE = 'update';
+    const SCENARIO_UPDATE_STATUS = 'update_status';
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['name', 'status'];
+        $scenarios[self::SCENARIO_UPDATE] = ['name', 'status'];
+        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
+        return $scenarios;
+    }
+
+    public function rules()
+    {
+        return [
+            [['name'], 'required'],
+            [['name'], 'trim'],
+            [['name'], 'string', 'min' => 1, 'max' => 255],
+            [['name'], 'unique'],
+            [['status'], 'integer'],
+            [['status'], 'in', 'range' => [0, 1]],
+            [['status'], 'default', 'value' => 1],
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'name',
+            'status',
+            'posts' => function ($model) {
+                return array_map(function ($post) {
+                    return [
+                        'id' => $post->id,
+                        'title' => $post->title,
+                        'description' => $post->description,
+                        'content' => $post->content,
+                        'status' => $post->status,
+                        'published_at' => $post->published_at
+                    ];
+                }, $model->posts);
+            },
+        ];
+    }
 
     #[Override]
     public function behaviors()
     {
         return [
-            SlugBehavior::class,
+            'slug' => [
+                'class' => SluggableBehavior::class,
+                'ensureUnique' => true,
+                'immutable' => false,
+                'attribute' => 'name'
+            ],
             'timestamps' => [
                 'class' => TimestampBehavior::class,
                 'value' => function (){

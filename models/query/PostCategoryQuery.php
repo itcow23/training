@@ -31,4 +31,22 @@ class PostCategoryQuery extends \yii\db\ActiveQuery
     {
         return parent::one($db);
     }
+
+    public function withRelations()
+    {
+        return $this->with([
+            'posts',
+        ]);
+    }
+
+     public function keyword(?string $keyword)
+    {
+        return $this->andFilterWhere([
+            'like',
+            'name',
+            $keyword,
+        ]);
+    }
 }
+
+

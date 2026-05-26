@@ -2,143 +2,64 @@
 
 namespace app\controllers;
 
-use app\models\forms\ProductForm;
 use app\models\Product;
-use app\models\response\ProductResponse;
 use app\models\search\ProductSearch;
 use yii\web\NotFoundHttpException;
-use app\services\ProductService;
-use yii\web\UploadedFile;
 
-/**
- * ProductController implements the CRUD actions for Product model.
- */
-class ProductController extends BaseController
+class ProductController extends ApiController
 {
-    private ProductService $productService;
-    
-    public function __construct($id, $module, ProductService $productService, $config = [])
-    {
-        $this->productService = $productService;
-        parent::__construct($id, $module, $config);
-    }
-
-    /**
-     * Lists all Product models.
-     *
-     * @return string
-     */
     public function actionIndex()
     {
         $searchModel = new ProductSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams, '');
-
-        return $this->dataProviderResponse($dataProvider, 'Products retrieved successfully');
+        return $searchModel->search($this->request->queryParams, '');
     }
 
-    /**
-     * Displays a single Product model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
-        return $this->successResponse(
-            ['model' => $this->findModel($id)],
-            'Product retrieved successfully'
-        );
+        return $this->findModel($id);
     }
 
-    public function actionListInactive()
-    {
-        $models = ProductResponse::find()->inactive()->all();
-        return $this->successResponse(
-            ['items' => $models],
-            'Inactive products retrieved successfully'
-        );
-    }
-
-    /**
-     * Creates a new Product model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
     public function actionCreate()
     {
-        $model = new ProductResponse();
-        $form = new ProductForm(['scenario' => ProductForm::SCENARIO_CREATE]);
+        $model = new Product(['scenario' => Product::SCENARIO_CREATE]);
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-             $form->image = UploadedFile::getInstancesByName('image');
-            if ($this->productService->create($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Product created successfully',
-                    201
-                );
-            }
-
-            return $this->modelErrorResponse([$form, $model], 'Failed to create product');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
 
-    /**
-     * Updates an existing Product model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $form = new ProductForm(['scenario' => ProductForm::SCENARIO_UPDATE]);
+        $model->scenario = Product::SCENARIO_UPDATE;
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            $form->image = UploadedFile::getInstancesByName('image');
-            if ($this->productService->update($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Product updated successfully'
-                );
-            }
-
-            return $this->modelErrorResponse([$form, $model], 'Failed to update product');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
 
-    /**
-     * Deletes an existing Product model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-
-        if (!$this->productService->delete($model)) {
-            return $this->modelErrorResponse([$model], 'Failed to delete product');
+        if (!$model->delete()) {
+            $this->response->statusCode = 422;
+            return $model->getErrors();
         }
-
-        return $this->successResponse([], 'Product deleted successfully');
+        return null;
     }
 
-    /**
-     * Finds the Product model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return Product the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
-        return parent::findModelByClass(ProductResponse::class, $id);
+        $model = Product::find()->where(['id' => $id])->withRelations()->one();
+        if ($model === null) {
+            throw new NotFoundHttpException('Product not found.');
+        }
+        return $model;
     }
 }

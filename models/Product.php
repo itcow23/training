@@ -3,10 +3,10 @@
 namespace app\models;
 
 use app\behaviors\MediaBehavior;
-use app\behaviors\SlugBehavior;
 use app\models\query\ProductQuery;
-use Override;
+use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "product".
@@ -24,21 +24,25 @@ use yii\behaviors\TimestampBehavior;
  *
  * @property CartItem[] $cartItems
  * @property Category $category
- * @property Gallery[] $galleries
  * @property OrderItem[] $orderItems
  * @property PostProduct[] $postProducts
  */
 class Product extends \yii\db\ActiveRecord
 {
-
+    const SCENARIO_CREATE = 'create';
+    const SCENARIO_UPDATE = 'update';
     public $image;
     public $removed_image;
 
-    #[Override]
     public function behaviors()
     {
         return [
-            SlugBehavior::class,
+            'slug' => [
+                'class' => SluggableBehavior::class,
+                'ensureUnique' => true,
+                'immutable' => false,
+                'attribute' => 'name'
+            ],
             'timestamp' => [
                 'class' => TimestampBehavior::class,
                 'value' => function () {
@@ -48,7 +52,76 @@ class Product extends \yii\db\ActiveRecord
             'media' => [
                 'class' => MediaBehavior::class,
                 'collection' => 'gallery',
+                'folder' => 'product',
             ],
+        ];
+    }
+
+    public function beforeValidate()
+    {
+        if (parent::beforeValidate()) {
+            $this->image = UploadedFile::getInstancesByName('image');
+            return true;
+        }
+        return false;
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'description', 'discount', 'status', 'image'];
+        $scenarios[self::SCENARIO_UPDATE] = ['category_id', 'name', 'price', 'description', 'discount', 'status', 'image', 'removed_image'];
+        return $scenarios;
+    }
+
+    public function rules()
+    {
+        return [
+            [['category_id', 'name', 'price'], 'required'],
+            [['category_id'], 'exist', 'targetClass' => Category::class, 'targetAttribute' => 'id'],
+            [['category_id', 'status', 'discount'], 'integer'],
+            [['status'], 'default', 'value' => 1],
+            [['status'], 'in', 'range' => [0, 1]],
+            [['name'], 'string', 'max' => 255],
+            [['price'], 'number', 'min' => 0],
+            [['description'], 'string'],
+            [['discount'], 'integer', 'min' => 0, 'max' => 100],
+
+            [
+                ['image'],
+                'file',
+                'skipOnEmpty' => true,
+                'maxFiles' => 10,
+                'extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+                'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                'maxSize' => 5 * 1024 * 1024,
+            ],
+            [['removed_image'], 'each', 'rule' => ['integer']],
+        ];
+    }
+
+    public function fields()
+    {
+        return [
+            'id',
+            'name',
+            'price',
+            'status',
+            'description',
+            'discount',
+            'category' => function ($model) {
+                return $model->category ? $model->category->name : null;
+            },
+            'media' => function ($model) {
+                return array_map(function ($media) {
+                    return [
+                        'id' => $media->id,
+                        'file_id' => $media->file_id,
+                        'file_type' => $media->file_type,
+                        'path' => $media->filepath
+                    ];
+                }, $model->media);
+            }
         ];
     }
 
@@ -80,15 +153,6 @@ class Product extends \yii\db\ActiveRecord
         return $this->hasOne(Category::class, ['id' => 'category_id']);
     }
 
-    /**
-     * Gets query for [[Galleries]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getGalleries()
-    {
-        return $this->hasMany(Gallery::class, ['product_id' => 'id']);
-    }
 
     /**
      * Gets query for [[OrderItems]].
@@ -113,6 +177,13 @@ class Product extends \yii\db\ActiveRecord
     public function getMedia()
     {
         return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'product']);
+    }
+
+    public function transactions()
+    {
+        return [
+            self::SCENARIO_DEFAULT => self::OP_ALL,
+        ];
     }
 
     public static function find()

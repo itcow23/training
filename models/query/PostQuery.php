@@ -31,4 +31,31 @@ class PostQuery extends \yii\db\ActiveQuery
     {
         return parent::one($db);
     }
+
+    public function withRelations()
+    {
+        return $this->with([
+            'comments',
+            'media',
+            'tags',
+        ]);
+    }
+
+    public function latest()
+    {
+        return $this->orderBy([
+            'id' => SORT_DESC,
+        ]);
+    }
+
+    public function keyword(?string $keyword)
+    {
+        return $this->andFilterWhere([
+            'or',
+            ['like', 'title', $keyword],
+            ['like', 'content', $keyword],
+            ['like', 'description', $keyword],
+        ]);
+    }
 }
+

@@ -2,32 +2,12 @@
 
 namespace app\controllers;
 
-use app\services\CommentService;
 use app\models\Comment;
-use app\models\forms\CommentForm;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
-/**
- * CommentController implements the CRUD actions for Comment model.
- */
-class CommentController extends BaseController
+class CommentController extends ApiController
 {
-    private CommentService $commentService;
-    public function init()
-    {
-        parent::init();
-        $this->commentService = new CommentService();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    /**
-     * Lists all Comment models.
-     *
-     * @return string
-     */
-
     public function actionIndex()
     {
         return [
@@ -35,93 +15,59 @@ class CommentController extends BaseController
         ];
     }
 
-
-    /**
-     * Creates a new Comment model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
-
     public function actionCreate()
     {
-        $model = new Comment();
-        $form = new CommentForm(['scenario' => CommentForm::SCENARIO_CREATE]);
+        $model = new Comment(['scenario' => Comment::SCENARIO_CREATE]);
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->commentService->create($model, $form)) {
-                 return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Comment created successfully',
-                    201
-                );
-            }
-
-           return $this->modelErrorResponse([$form, $model], 'Failed to create comment');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
-
-
-
-    /**
-     * Updates an existing Comment model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
 
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $form = new CommentForm(['scenario' => CommentForm::SCENARIO_UPDATE]);
+        $model->scenario = Comment::SCENARIO_UPDATE;
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->commentService->update($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Comment updated successfully'
-                );
-            }
-
-            return $this->modelErrorResponse([$form, $model], 'Failed to update comment');
+        $accountId = $this->request->post('account_id');
+        if ((int)$model->account_id !== (int)$accountId) {
+            throw new ForbiddenHttpException('You do not have permission to edit this comment.');
         }
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
-    }
 
-    /**
-     * Deletes an existing Comment model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
+        }
+
+        $this->response->statusCode = 422;
+        return $model->getErrors();
+    }
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        $form = new CommentForm(['scenario' => CommentForm::SCENARIO_DELETE]);
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->commentService->delete($model, $form)) {
-               return $this->successResponse([], 'Comment deleted successfully');
-            }
-            return $this->modelErrorResponse([$form, $model], 'Failed to delete comment');
+        $accountId = $this->request->post('account_id');
+        if ((int)$model->account_id !== (int)$accountId) {
+            throw new ForbiddenHttpException('You do not have permission to delete this comment.');
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        if (!$model->delete()) {
+            $this->response->statusCode = 422;
+            return $model->getErrors();
+        }
+
+        return null;
     }
 
-    /**
-     * Finds the Comment model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return Comment the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
-        return parent::findModelByClass(Comment::class, $id);
+        $model = Comment::find()->where(['id' => $id])->one();
+        if ($model === null) {
+            throw new NotFoundHttpException('Comment not found.');
+        }
+        return $model;
     }
 }

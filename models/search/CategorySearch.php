@@ -5,81 +5,61 @@ namespace app\models\search;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Category;
-use app\models\response\CategoryResponse;
 
-/**
- * CategorySearch represents the model behind the search form of `app\models\Category`.
- */
 class CategorySearch extends Category
 {
     public $key;
     public $pageSize = 10;
-    /**
-     * {@inheritdoc}
-     */
+
     public function rules()
     {
         return [
-            [['id'], 'integer'],
-            [['name', 'slug','status', 'created_at', 'updated_at'], 'safe'],
-            ['key', 'safe'],
-            [['pageSize'], 'integer']
+
+            [['id', 'status'], 'integer'],
+
+            [['name', 'slug', 'created_at', 'updated_at', 'key'], 'safe'],
+
+            [['pageSize'], 'integer',
+                'min' => 1,
+                'max' => 100
+            ],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function scenarios()
     {
-        // bypass scenarios() implementation in the parent class
         return Model::scenarios();
     }
 
-    /**
-     * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     * @param string|null $formName Form name to be used into `->load()` method.
-     *
-     * @return ActiveDataProvider
-     */
     public function search($params, $formName = null)
     {
+        $query = Category::find()
+            ->withRelations()
+            ->latest();
 
-        $query = CategoryResponse::find()->with(['products','media']);
+        $this->load($params, $formName);
 
         $dataProvider = new ActiveDataProvider([
+
             'query' => $query,
+
             'pagination' => [
                 'pageSize' => $this->pageSize ?: 10,
                 'pageParam' => 'page',
             ],
 
-            'sort' => [
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                ]
-            ]
         ]);
 
-        $this->load($params, $formName);
-
         if (!$this->validate()) {
-
             return $dataProvider;
         }
 
         $query->andFilterWhere([
             'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
             'status' => $this->status,
         ]);
 
-        if ($this->key !== null && $this->key !== '') {
-             $query->andFilterWhere(['like', 'name', $this->key]);
-        }
+        $query->keyword($this->key);
 
         return $dataProvider;
     }

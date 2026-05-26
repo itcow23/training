@@ -4,56 +4,29 @@ namespace app\controllers;
 
 use app\models\forms\OrderForm;
 use app\models\Order;
-use app\models\response\OrderResponse;
 use app\models\search\OrderSearch;
-use yii\web\NotFoundHttpException;
-use app\services\OrderService;
 use yii\data\ActiveDataProvider;
+use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 
-/**
- * OrderController implements the CRUD actions for Order model.
- */
-class OrderController extends BaseController
+class OrderController extends ApiController
 {
-    public OrderService $orderService;
-
-    public function __construct($id, $module, OrderService $orderService, $config = [])
-    {
-        $this->orderService = $orderService;
-        parent::__construct($id, $module, $config);
-    }
-
-    /**
-     * Lists all Order models.
-     *
-     * @return string
-     */
     public function actionIndex()
     {
         $searchModel = new OrderSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
-        return $this->dataProviderResponse($dataProvider, 'Orders retrieved successfully');
+        return $searchModel->search($this->request->queryParams);
     }
 
-    /**
-     * Displays a single Order model.
-     * @param string $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
-        return $this->successResponse(
-            ['order' => $this->findModel($id)],
-            'Order retrieved successfully'
-        );
+        return $this->findModel($id);
     }
 
     public function actionFilter($status)
     {
-        $query = OrderResponse::find()->filterByStatus($status);
+        $query = Order::find()->filterByStatus($status);
 
-        $dataProvider = new ActiveDataProvider([
+        return new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
                 'pageSize' => 10,
@@ -64,87 +37,56 @@ class OrderController extends BaseController
                 ],
             ],
         ]);
-
-        return $this->dataProviderResponse($dataProvider, 'Orders filtered by status retrieved successfully');
     }
 
-    /**
-     * Creates a new Order model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
     public function actionCreate()
     {
-        $model = new OrderResponse();
+        $model = new Order();
         $form = new OrderForm(['scenario' => OrderForm::SCENARIO_CREATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->orderService->create($model, $form)) {
-                return $this->successResponse(
-                    ['order' => $this->findModel($model->id)],
-                    'Order created successfully',
-                    201
-                );
+            if ($form->save($model)) {
+                return $this->findModel($model->id);
             }
-            return $this->modelErrorResponse([$form, $model], 'Failed to create order');
+            $this->response->statusCode = 422;
+            return array_merge($form->getErrors(), $model->getErrors());
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        throw new BadRequestHttpException('POST request required');
     }
 
-    /**
-     * Updates an existing Order model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param string $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdateStatus($id)
     {
         $model = $this->findModel($id);
         $form = new OrderForm(['scenario' => OrderForm::SCENARIO_UPDATE]);
 
         if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->orderService->updateStatusOrder($model, $form)) {
-                return $this->successResponse(
-                    ['order' => $this->findModel($model->id)],
-                    'Order status updated successfully'
-                );
+            if ($form->save($model)) {
+                return $this->findModel($model->id);
             }
-            return $this->modelErrorResponse([$form, $model], 'Failed to update order status');
+            $this->response->statusCode = 422;
+            return array_merge($form->getErrors(), $model->getErrors());
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        throw new BadRequestHttpException('POST request required');
     }
 
-    /**
-     * Deletes an existing Order model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param string $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        if (!$this->orderService->delete($model)) {
-            return $this->modelErrorResponse([$model], 'Failed to delete order');
+        if (!$model->delete()) {
+            $this->response->statusCode = 422;
+            return $model->getErrors();
         }
-        return $this->successResponse(
-            [],
-            'Order deleted successfully'
-        );
+        return null;
     }
 
-    /**
-     * Finds the Order model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param string $id ID
-     * @return Order the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
-        return parent::findModelByClass(OrderResponse::class, $id);
+        $model = Order::find()->where(['id' => $id])->withRelations()->one();
+        if ($model === null) {
+            throw new NotFoundHttpException('Order not found.');
+        }
+        return $model;
     }
 }

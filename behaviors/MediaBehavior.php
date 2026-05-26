@@ -3,6 +3,7 @@
 namespace app\behaviors;
 
 use app\models\Media;
+use Exception;
 use Yii;
 use yii\base\Behavior;
 use yii\db\ActiveRecord;
@@ -12,9 +13,11 @@ class MediaBehavior extends Behavior
 {
     public $attribute = 'image';
 
+    public $removedAttribute = 'removed_image';
+
     public $collection = 'thumbnail';
 
-    public $removed = 'removed_image';
+    public $folder;
 
     public function events()
     {
@@ -25,55 +28,80 @@ class MediaBehavior extends Behavior
         ];
     }
 
-    public function uploadMedia()
+    public function uploadMedia($event): void
     {
         $model = $this->owner;
 
         $files = $model->{$this->attribute};
-        $removed = $model->{$this->removed};
+        $removed = $model->{$this->removedAttribute};
 
-
-        if (!$files && empty($removed)) {
+        if (empty($files) && empty($removed)) {
             return;
         }
 
+        $transaction = Yii::$app->db->beginTransaction();
 
-        $folder = $model->tableName();
-
-        if (!empty($removed)) {
-            $removeMedias = Media::find()
-                ->where(['id' => $removed])
-                ->all();
-
-            if (empty($removeMedias)) {
-                throw new RuntimeException("Media not found.");
+        try {
+            if (!empty($removed)) {
+                $this->removeMedia($model, $removed);
             }
 
-            foreach ($removeMedias as $media) {
-                Yii::$app->media->delete($media->filepath);
-                $media->delete();
+            if (!empty($files)) {
+                $this->storeMedia($model, $files);
             }
+
+            $transaction->commit();
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+
+            throw $e;
         }
+    }
 
-        if (!empty($files)) {
+    protected function removeMedia($model, array $removed): void
+    {
+        $medias = Media::find()
+            ->where([
+                'id' => $removed,
+                'file_id' => $model->id,
+                'file_type' => $model->tableName(),
+            ])
+            ->all();
 
-            foreach ($files as $file) {
+        foreach ($medias as $media) {
+            $path = $media->filepath;
 
-                $uploaded = Yii::$app->media->upload($file, $folder);
+            if (!$media->delete()) {
+                throw new Exception('Failed to delete media record.');
+            }
 
-                if (!$uploaded) {
-                    throw new RuntimeException('Failed to upload image.');
-                }
+            Yii::$app->media->delete($path);
+        }
+    }
 
-                $media = new Media();
-                $media->file_id = $model->id;
-                $media->file_type = $model->tableName();
-                $media->collection = $this->collection;
-                $media->filepath = $uploaded['url'];
+    protected function storeMedia($model, array $files): void
+    {
+        foreach ($files as $file) {
+            $folder = $this->folder;
+            if (empty($folder)) {
+                $classParts = explode('\\', get_class($model));
+                $folder = strtolower(end($classParts));
+            }
 
-                if (!$media->save()) {
-                    throw new RuntimeException('Failed to save media information.');
-                }
+            $uploaded = Yii::$app->media->upload($file, $folder);
+
+            if (!$uploaded) {
+                throw new RuntimeException('Failed to upload image.');
+            }
+
+            $media = new Media();
+            $media->file_id = $model->id;
+            $media->file_type = $model->tableName();
+            $media->collection = $this->collection;
+            $media->filepath = $uploaded['url'];
+
+            if (!$media->save()) {
+                throw new RuntimeException('Failed to save media information.');
             }
         }
     }

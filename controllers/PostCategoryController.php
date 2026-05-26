@@ -2,137 +2,64 @@
 
 namespace app\controllers;
 
-use app\models\forms\PostCategoryForm;
-use app\models\response\PostCategoryResponse;
+use app\models\PostCategory;
 use app\models\search\PostCategorySearch;
 use yii\web\NotFoundHttpException;
-use app\services\PostCategoryService;
 
-/**
- * CategoryController implements the CRUD actions for Category model.
- */
-class PostCategoryController extends BaseController
+class PostCategoryController extends ApiController
 {
-    private PostCategoryService $postCategoryService;
-    public function init()
-    {
-        parent::init();
-        $this->postCategoryService = new PostCategoryService();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    /**
-     * Lists all Category models.
-     *
-     * @return string
-     */
-
     public function actionIndex()
     {
-        $params = $this->request->queryParams;
-
-        $model = new PostCategorySearch();
-        $dataProvider = $model->search($params,'');
-        return $this->dataProviderResponse($dataProvider, 'Post categories retrieved successfully');
+        $searchModel = new PostCategorySearch();
+        return $searchModel->search($this->request->queryParams, '');
     }
 
-    /**
-     * Displays a single Category model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
-        return $this->successResponse(
-            ['model' => $this->findModel($id)],
-            'Post category retrieved successfully'
-        );
+        return $this->findModel($id);
     }
-
-    /**
-     * Creates a new Category model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
 
     public function actionCreate()
     {
-        $model = new PostCategoryResponse();
-        $form = new PostCategoryForm(['scenario' => PostCategoryForm::SCENARIO_CREATE]);
+        $model = new PostCategory(['scenario' => PostCategory::SCENARIO_CREATE]);
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->postCategoryService->create($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Post category created successfully',
-                    201
-                );
-            }
-            return $this->modelErrorResponse([$form, $model], 'Failed to create post category');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
-
-
-
-    /**
-     * Updates an existing Category model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
 
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $form = new PostCategoryForm(['scenario' => PostCategoryForm::SCENARIO_UPDATE, 'id' => $model->id]);
+        $model->scenario = PostCategory::SCENARIO_UPDATE;
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->postCategoryService->update($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Post category updated successfully'
-                );
-            }
-            return $this->modelErrorResponse([$form, $model], 'Failed to update post category');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
-
-    /**
-     * Deletes an existing Category model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-
-        if (!$this->postCategoryService->delete($model)) {
-            return $this->modelErrorResponse([$model], 'Failed to delete post category');
+        if (!$model->delete()) {
+            $this->response->statusCode = 422;
+            return $model->getErrors();
         }
-
-        return $this->successResponse([], 'Post category deleted successfully');
+        return null;
     }
 
-    /**
-     * Finds the Category model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return PostCategoryResponse the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
-        return parent::findModelByClass(PostCategoryResponse::class, $id);
+        $model = PostCategory::find()->where(['id' => $id])->withRelations()->one();
+        if ($model === null) {
+            throw new NotFoundHttpException('Post category not found.');
+        }
+        return $model;
     }
 }

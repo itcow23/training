@@ -2,7 +2,6 @@
 
 namespace app\models\search;
 
-use app\models\response\TagResponse;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Tag;
@@ -43,7 +42,7 @@ class TagSearch extends Tag
      */
     public function search($params, $formName = null)
     {
-        $query = TagResponse::find();
+        $query = Tag::find();
 
         // add conditions that should always apply here
 
@@ -76,9 +75,7 @@ class TagSearch extends Tag
 
         $query->andFilterWhere(['like', 'name', $this->name]);
 
-        if ($this->key) {
-            $query->andWhere(['like', 'name', $this->key]);
-        }
+        $query->keyword($this->key);
 
         return $dataProvider;
     }

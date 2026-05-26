@@ -31,4 +31,14 @@ class TagQuery extends \yii\db\ActiveQuery
     {
         return parent::one($db);
     }
+
+    public function keyword(?string $keyword)
+    {
+        return $this->andFilterWhere([
+            'like',
+            'name',
+            $keyword,
+        ]);
+    }
 }
+

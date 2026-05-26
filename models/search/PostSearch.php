@@ -4,12 +4,12 @@ namespace app\models\search;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\response\PostResponse;
+use app\models\Post;
 
 /**
  * PostSearch represents the model behind the search form of `app\models\Post`.
  */
-class PostSearch extends PostResponse
+class PostSearch extends Post
 {
     public $key;
     public $pageSize = 10;
@@ -43,7 +43,7 @@ class PostSearch extends PostResponse
      */
     public function search($params, $formName = null)
     {
-        $query = PostResponse::find()->with(['comments','media','tags']);
+        $query = Post::find()->withRelations();
 
 
 
@@ -83,9 +83,7 @@ class PostSearch extends PostResponse
             ->andFilterWhere(['like', 'content', $this->content])
             ->andFilterWhere(['like', 'slug', $this->slug]);
 
-        if(!empty($this->key)) {
-            $query->andFilterWhere(['or',['like','title',$this->key],['like','content',$this->key],['like','description',$this->key]]);
-        }
+        $query->keyword($this->key);
 
         return $dataProvider;
     }

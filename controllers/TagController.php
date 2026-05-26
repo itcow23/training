@@ -2,146 +2,64 @@
 
 namespace app\controllers;
 
-use app\models\forms\TagForm;
-use app\models\response\TagResponse;
 use app\models\Tag;
 use app\models\search\TagSearch;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use app\services\TagService;
 
-/**
- * TagController implements the CRUD actions for Tag model.
- */
-class TagController extends BaseController
+class TagController extends ApiController
 {
-    private TagService $tagService;
-    public function init()
-    {
-        parent::init();
-        $this->tagService = new TagService();
-    }
-    /**
-     * @inheritDoc
-     */
-    public function behaviors()
-    {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
-            ]
-        );
-    }
-
-    /**
-     * Lists all Tag models.
-     *
-     * @return string
-     */
     public function actionIndex()
     {
         $searchModel = new TagSearch();
-        $dataProvider = $searchModel->search($this->request->queryParams);
-
-        return $this->dataProviderResponse($dataProvider, 'Tags retrieved successfully');
+        return $searchModel->search($this->request->queryParams);
     }
 
-    /**
-     * Displays a single Tag model.
-     * @param int $id ID
-     * @return string
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionView($id)
     {
-        return $this->successResponse(
-            ['model' => $this->findModel($id)],
-            'Tag retrieved successfully'
-        );
+        return $this->findModel($id);
     }
 
-    /**
-     * Creates a new Tag model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
     public function actionCreate()
     {
-       $form = new TagForm(['scenario' => TagForm::SCENARIO_CREATE]);
-        $model = new TagResponse();
+        $model = new Tag(['scenario' => Tag::SCENARIO_CREATE]);
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->tagService->create($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Tag created successfully',
-                    201
-                );
-            }
-            return $this->modelErrorResponse([$form, $model], 'Failed to create tag');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
 
-    /**
-     * Updates an existing Tag model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
-         $model = $this->findModel($id);
-        $form = new TagForm(['scenario' => TagForm::SCENARIO_UPDATE, 'id' => $model->id]);
+        $model = $this->findModel($id);
+        $model->scenario = Tag::SCENARIO_UPDATE;
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($this->tagService->update($model, $form)) {
-                return $this->successResponse(
-                    ['model' => $this->findModel($model->id, [])],
-                    'Tag updated successfully'
-                );
-            }
-            return $this->modelErrorResponse([$form, $model], 'Failed to update tag');
+        if ($model->load($this->request->post(), '') && $model->save()) {
+            return $this->findModel($model->id);
         }
 
-        return $this->errorResponse('POST request required', 'Invalid request', 400);
+        $this->response->statusCode = 422;
+        return $model->getErrors();
     }
 
-    /**
-     * Deletes an existing Tag model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionDelete($id)
     {
-       $model = $this->findModel($id);
-
-        if (!$this->tagService->delete($model)) {
-            return $this->modelErrorResponse([$model], 'Failed to delete tag');
+        $model = $this->findModel($id);
+        if (!$model->delete()) {
+            $this->response->statusCode = 422;
+            return $model->getErrors();
         }
-
-        return $this->successResponse([], 'Tag deleted successfully');
+        return null;
     }
 
-    /**
-     * Finds the Tag model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param int $id ID
-     * @return Tag the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     protected function findModel($id)
     {
-         return parent::findModelByClass(TagResponse::class, $id);
+        $model = Tag::find()->where(['id' => $id])->one();
+        if ($model === null) {
+            throw new NotFoundHttpException('Tag not found.');
+        }
+        return $model;
     }
 }
