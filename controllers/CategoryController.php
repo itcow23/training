@@ -47,7 +47,7 @@ class CategoryController extends ApiController
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        if (!$model->delete()) {
+        if (!$model->softDelete()) {
             $this->response->statusCode = 422;
             return $model->getErrors();
         }
@@ -56,7 +56,7 @@ class CategoryController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Category::find()->where(['id' => $id])->withRelations()->one();
+        $model = Category::find()->andWhere(['id' => $id])->withRelations()->one();
         if ($model === null) {
             throw new NotFoundHttpException('Category not found.');
         }

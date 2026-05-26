@@ -31,7 +31,7 @@ class RatingController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Rating::find()->where(['id' => $id])->one();
+        $model = Rating::find()->andWhere(['id' => $id])->one();
         if ($model === null) {
             throw new NotFoundHttpException('Rating not found.');
         }

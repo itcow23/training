@@ -45,12 +45,15 @@ class Comment extends \yii\db\ActiveRecord
 
     public function behaviors()
     {
-        return[
+        return [
             'timestamps' => [
                 'class' => TimestampBehavior::class,
                 'value' => function(){
                     return date('Y-m-d H:i:s');
                 }
+            ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
             ],
         ];
     }
@@ -82,7 +85,13 @@ class Comment extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Post::class, ['id' => 'post_id']);
     }
+    public static function find()
+    {
+        return parent::find()->andWhere(['comment.is_deleted' => 0]);
+    }
 
-
-
+    public static function findWithDeleted()
+    {
+        return parent::find();
+    }
 }

@@ -62,6 +62,9 @@ class Tag extends \yii\db\ActiveRecord
                 'immutable' => false,
                 'attribute' => 'name'
             ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -85,6 +88,11 @@ class Tag extends \yii\db\ActiveRecord
     }
 
     public static function find()
+    {
+        return (new TagQuery(get_called_class()))->andWhere(['tag.is_deleted' => 0]);
+    }
+
+    public static function findWithDeleted()
     {
         return new TagQuery(get_called_class());
     }

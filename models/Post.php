@@ -66,7 +66,10 @@ class Post extends \yii\db\ActiveRecord
                 'class' => MediaBehavior::class,
                 'collection' => 'image post',
                 'folder' => 'post',
-            ]
+            ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -263,6 +266,11 @@ class Post extends \yii\db\ActiveRecord
     }
 
     public static function find()
+    {
+        return (new PostQuery(get_called_class()))->andWhere(['post.is_deleted' => 0]);
+    }
+
+    public static function findWithDeleted()
     {
         return new PostQuery(get_called_class());
     }

@@ -54,7 +54,7 @@ class CommentController extends ApiController
             throw new ForbiddenHttpException('You do not have permission to delete this comment.');
         }
 
-        if (!$model->delete()) {
+        if (!$model->softDelete()) {
             $this->response->statusCode = 422;
             return $model->getErrors();
         }
@@ -64,7 +64,7 @@ class CommentController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Comment::find()->where(['id' => $id])->one();
+        $model = Comment::find()->andWhere(['id' => $id])->one();
         if ($model === null) {
             throw new NotFoundHttpException('Comment not found.');
         }

@@ -60,7 +60,9 @@ class Category extends \yii\db\ActiveRecord
                 'collection' => 'thumbnail',
                 'folder' => 'category',
             ],
-
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -153,7 +155,24 @@ class Category extends \yii\db\ActiveRecord
         ];
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        
+        if (!$insert && isset($changedAttributes['is_deleted']) && $this->is_deleted == 1) {
+            
+            foreach ($this->products as $product) {
+                $product->softDelete();
+            }
+        }
+    }
+
     public static function find()
+    {
+        return (new CategoryQuery(get_called_class()))->andWhere(['category.is_deleted' => 0]);
+    }
+
+    public static function findWithDeleted()
     {
         return new CategoryQuery(get_called_class());
     }

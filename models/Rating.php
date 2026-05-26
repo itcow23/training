@@ -49,6 +49,16 @@ class Rating extends \yii\db\ActiveRecord
                     return date('Y-m-d H:i:s');
                 }
             ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
+        ];
+    }
+
+    public function transactions()
+    {
+        return [
+            self::SCENARIO_DEFAULT => self::OP_ALL,
         ];
     }
 
@@ -88,5 +98,15 @@ class Rating extends \yii\db\ActiveRecord
     public function getPost()
     {
         return $this->hasOne(Post::class, ['id' => 'post_id']);
+    }
+
+    public static function find()
+    {
+        return parent::find()->andWhere(['rating.is_deleted' => 0]);
+    }
+
+    public static function findWithDeleted()
+    {
+        return parent::find();
     }
 }

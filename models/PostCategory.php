@@ -82,7 +82,17 @@ class PostCategory extends \yii\db\ActiveRecord
                 'value' => function (){
                      return date('Y-m-d H:i:s');
                 }
-            ]
+            ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
+        ];
+    }
+
+    public function transactions()
+    {
+        return [
+            self::SCENARIO_DEFAULT => self::OP_ALL,
         ];
     }
 
@@ -105,10 +115,26 @@ class PostCategory extends \yii\db\ActiveRecord
         return $this->hasMany(Post::class, ['category_id' => 'id']);
     }
 
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        
+        if (!$insert && isset($changedAttributes['is_deleted']) && $this->is_deleted == 1) {
+            // Cascade soft delete all posts under this category!
+            foreach ($this->posts as $post) {
+                $post->softDelete();
+            }
+        }
+    }
+
     #[Override]
     public static function find()
     {
-        return new PostCategoryQuery(get_called_class());
+        return (new PostCategoryQuery(get_called_class()))->andWhere(['post_category.is_deleted' => 0]);
     }
 
+    public static function findWithDeleted()
+    {
+        return new PostCategoryQuery(get_called_class());
+    }
 }

@@ -34,12 +34,15 @@ class ProductQuery extends \yii\db\ActiveQuery
 
     public function active()
     {
-        return $this->andWhere(['status' => 1]);
+        return $this->joinWith('category', false)
+            ->andWhere(['product.status' => 1])
+            ->andWhere(['category.status' => 1])
+            ->andWhere(['category.is_deleted' => 0]);
     }
 
     public function inactive()
     {
-        return $this->andWhere(['status' => 0]);
+        return $this->andWhere(['product.status' => 0]);
     }
 
     public function withRelations()
@@ -53,7 +56,7 @@ class ProductQuery extends \yii\db\ActiveQuery
      public function byId($id)
     {
         return $this->andWhere([
-            'id' => $id,
+            'product.id' => $id,
         ]);
     }
 
@@ -61,7 +64,7 @@ class ProductQuery extends \yii\db\ActiveQuery
     {
         return $this->andFilterWhere([
             'like',
-            'name',
+            'product.name',
             $keyword,
         ]);
     }

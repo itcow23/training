@@ -45,7 +45,11 @@ class ProductSearch extends Product
      */
     public function search($params, $formName = null)
     {
-        $query = Product::find()->withRelations();
+        $query = Product::find()
+            ->withRelations()
+            ->joinWith('category', false)
+            ->andWhere(['category.status' => 1])
+            ->andWhere(['category.is_deleted' => 0]);
 
 
         $dataProvider = new ActiveDataProvider([
@@ -57,7 +61,7 @@ class ProductSearch extends Product
 
             'sort' => [
                 'defaultOrder' => [
-                    'id' => SORT_DESC,
+                    'product.id' => SORT_DESC,
                 ]
             ]
         ]);
@@ -72,18 +76,18 @@ class ProductSearch extends Product
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
-            'category_id' => $this->category_id,
-            'price' => $this->price,
-            'status' => $this->status,
-            'discount' => $this->discount,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'product.id' => $this->id,
+            'product.category_id' => $this->category_id,
+            'product.price' => $this->price,
+            'product.status' => $this->status,
+            'product.discount' => $this->discount,
+            'product.created_at' => $this->created_at,
+            'product.updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'description', $this->description])
-            ->andFilterWhere(['like', 'slug', $this->slug]);
+        $query->andFilterWhere(['like', 'product.name', $this->name])
+            ->andFilterWhere(['like', 'product.description', $this->description])
+            ->andFilterWhere(['like', 'product.slug', $this->slug]);
 
         $query->keyword($this->key);
 

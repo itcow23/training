@@ -54,6 +54,9 @@ class Product extends \yii\db\ActiveRecord
                 'collection' => 'gallery',
                 'folder' => 'product',
             ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -179,14 +182,12 @@ class Product extends \yii\db\ActiveRecord
         return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'product']);
     }
 
-    public function transactions()
+    public static function find()
     {
-        return [
-            self::SCENARIO_DEFAULT => self::OP_ALL,
-        ];
+        return (new ProductQuery(get_called_class()))->andWhere(['product.is_deleted' => 0]);
     }
 
-    public static function find()
+    public static function findWithDeleted()
     {
         return new ProductQuery(get_called_class());
     }

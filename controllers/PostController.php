@@ -60,7 +60,7 @@ class PostController extends ApiController
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
-        if (!$model->delete()) {
+        if (!$model->softDelete()) {
             $this->response->statusCode = 422;
             return $model->getErrors();
         }
@@ -69,7 +69,7 @@ class PostController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Post::find()->where(['id' => $id])->withRelations()->one();
+        $model = Post::find()->andWhere(['id' => $id])->withRelations()->one();
         if ($model === null) {
             throw new NotFoundHttpException('Post not found.');
         }

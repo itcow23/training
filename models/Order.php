@@ -4,6 +4,7 @@ namespace app\models;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
+use app\models\query\OrderQuery;
 
 /**
  * This is the model class for table "orders".
@@ -45,7 +46,10 @@ class Order extends \yii\db\ActiveRecord
                 'value' => function () {
                     return date('Y-m-d H:i:s');
                 }
-            ]
+            ],
+            'softDelete' => [
+                'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -137,6 +141,11 @@ class Order extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return new query\OrderQuery(get_called_class());
+        return (new OrderQuery(get_called_class()))->andWhere(['orders.is_deleted' => 0]);
+    }
+
+    public static function findWithDeleted()
+    {
+        return new OrderQuery(get_called_class());
     }
 }
