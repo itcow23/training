@@ -38,9 +38,20 @@ class SoftDeleteBehavior extends Behavior
     {
         $model = $this->owner;
 
+        $oldDeleted = $model->getOldAttribute($this->deletedAttribute);
+        $oldDeletedAt = $this->deletedAtAttribute ? $model->getOldAttribute($this->deletedAtAttribute) : null;
+
         $model->{$this->deletedAttribute} = 0;
         if ($this->deletedAtAttribute) {
             $model->{$this->deletedAtAttribute} = null;
+        }
+
+        if (!$model->validate()) {
+            $model->{$this->deletedAttribute} = $oldDeleted;
+            if ($this->deletedAtAttribute) {
+                $model->{$this->deletedAtAttribute} = $oldDeletedAt;
+            }
+            return false;
         }
 
         if (!$model->save(false)) {
