@@ -24,6 +24,8 @@ class PostCategory extends \yii\db\ActiveRecord
     const SCENARIO_UPDATE = 'update';
     const SCENARIO_UPDATE_STATUS = 'update_status';
 
+    public static $bypassDeleteFilter = false;
+
     public function scenarios()
     {
         $scenarios = parent::scenarios();
@@ -86,6 +88,9 @@ class PostCategory extends \yii\db\ActiveRecord
             'softDelete' => [
                 'class' => \app\behaviors\SoftDeleteBehavior::class,
             ],
+            'bypassSoftDelete' => [
+                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -130,7 +135,11 @@ class PostCategory extends \yii\db\ActiveRecord
     #[Override]
     public static function find()
     {
-        return (new PostCategoryQuery(get_called_class()))->andWhere(['post_category.is_deleted' => 0]);
+        $query = new PostCategoryQuery(get_called_class());
+        if (!self::$bypassDeleteFilter) {
+            $query->andWhere(['post_category.is_deleted' => 0]);
+        }
+        return $query;
     }
 
     public static function findWithDeleted()

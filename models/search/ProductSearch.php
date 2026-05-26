@@ -61,8 +61,19 @@ class ProductSearch extends Product
             ],
 
             'sort' => [
+                'attributes' => [
+                    'id' => [
+                        'asc' => ['product.id' => SORT_ASC],
+                        'desc' => ['product.id' => SORT_DESC],
+                    ],
+                    'name',
+                    'price',
+                    'category_id',
+                    'status',
+                    'discount',
+                ],
                 'defaultOrder' => [
-                    'product.id' => SORT_DESC,
+                    'id' => SORT_DESC,
                 ]
             ]
         ]);

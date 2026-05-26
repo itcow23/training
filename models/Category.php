@@ -27,6 +27,7 @@ class Category extends \yii\db\ActiveRecord
 
     public $image;
     public $removed_image;
+    public static $bypassDeleteFilter = false;
 
     public function beforeValidate()
     {
@@ -62,6 +63,9 @@ class Category extends \yii\db\ActiveRecord
             ],
             'softDelete' => [
                 'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
+            'bypassSoftDelete' => [
+                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
             ],
         ];
     }
@@ -169,7 +173,11 @@ class Category extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return (new CategoryQuery(get_called_class()))->andWhere(['category.is_deleted' => 0]);
+        $query = new CategoryQuery(get_called_class());
+        if (!self::$bypassDeleteFilter) {
+            $query->andWhere(['category.is_deleted' => 0]);
+        }
+        return $query;
     }
 
     public static function findWithDeleted()

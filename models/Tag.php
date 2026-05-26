@@ -20,6 +20,7 @@ class Tag extends \yii\db\ActiveRecord
 {
     const SCENARIO_CREATE = 'create';
     const SCENARIO_UPDATE = 'update';
+    public static $bypassDeleteFilter = false;
 
     public function scenarios()
     { 
@@ -65,6 +66,9 @@ class Tag extends \yii\db\ActiveRecord
             'softDelete' => [
                 'class' => \app\behaviors\SoftDeleteBehavior::class,
             ],
+            'bypassSoftDelete' => [
+                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+            ],
         ];
     }
 
@@ -89,7 +93,11 @@ class Tag extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return (new TagQuery(get_called_class()))->andWhere(['tag.is_deleted' => 0]);
+        $query = new TagQuery(get_called_class());
+        if (!self::$bypassDeleteFilter) {
+            $query->andWhere(['tag.is_deleted' => 0]);
+        }
+        return $query;
     }
 
     public static function findWithDeleted()

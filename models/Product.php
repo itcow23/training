@@ -33,6 +33,7 @@ class Product extends \yii\db\ActiveRecord
     const SCENARIO_UPDATE = 'update';
     public $image;
     public $removed_image;
+    public static $bypassDeleteFilter = false;
 
     public function behaviors()
     {
@@ -56,6 +57,9 @@ class Product extends \yii\db\ActiveRecord
             ],
             'softDelete' => [
                 'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
+            'bypassSoftDelete' => [
+                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
             ],
         ];
     }
@@ -199,7 +203,11 @@ class Product extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return (new ProductQuery(get_called_class()))->andWhere(['product.is_deleted' => 0]);
+        $query = new ProductQuery(get_called_class());
+        if (!self::$bypassDeleteFilter) {
+            $query->andWhere(['product.is_deleted' => 0]);
+        }
+        return $query;
     }
 
     public static function findWithDeleted()

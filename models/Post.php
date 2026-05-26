@@ -48,6 +48,7 @@ class Post extends \yii\db\ActiveRecord
     public $removed_tag;
     public $add_product;
     public $removed_product;
+    public static $bypassDeleteFilter = false;
 
     public function behaviors()
     {
@@ -71,6 +72,9 @@ class Post extends \yii\db\ActiveRecord
             ],
             'softDelete' => [
                 'class' => \app\behaviors\SoftDeleteBehavior::class,
+            ],
+            'bypassSoftDelete' => [
+                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
             ],
         ];
     }
@@ -299,7 +303,11 @@ class Post extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return (new PostQuery(get_called_class()))->andWhere(['post.is_deleted' => 0]);
+        $query = new PostQuery(get_called_class());
+        if (!self::$bypassDeleteFilter) {
+            $query->andWhere(['post.is_deleted' => 0]);
+        }
+        return $query;
     }
 
     public static function findWithDeleted()
