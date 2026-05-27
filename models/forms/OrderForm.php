@@ -135,7 +135,15 @@ class OrderForm extends BaseForm
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $model->account_id = $this->account_id;
-            $model->membership_level_id = $this->membership_level_id;
+            $membershipLevelId = 1;
+            if ($this->account_id) {
+                $account = Account::findOne($this->account_id);
+                if ($account && $account->membership_level_id) {
+                    $membershipLevelId = $account->membership_level_id;
+                }
+            }
+            $model->membership_level_id = $membershipLevelId;
+
             $model->shipping_name = $this->shipping_name;
             $model->shipping_email = $this->shipping_email;
             $model->shipping_phone = $this->shipping_phone;
