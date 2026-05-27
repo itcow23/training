@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\behaviors\BypassSoftDeleteBehavior;
 use app\behaviors\MediaBehavior;
+use app\behaviors\SoftDeleteBehavior;
 use app\models\query\ProductQuery;
 use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -38,6 +40,9 @@ class Product extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
+            'bypassSoftDelete' => [
+                'class' => BypassSoftDeleteBehavior::class,
+            ],
             'slug' => [
                 'class' => SluggableBehavior::class,
                 'ensureUnique' => true,
@@ -56,10 +61,7 @@ class Product extends \yii\db\ActiveRecord
                 'folder' => 'product',
             ],
             'softDelete' => [
-                'class' => \app\behaviors\SoftDeleteBehavior::class,
-            ],
-            'bypassSoftDelete' => [
-                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+                'class' => SoftDeleteBehavior::class,
             ],
         ];
     }
@@ -120,21 +122,13 @@ class Product extends \yii\db\ActiveRecord
                 return $model->category ? $model->category->name : null;
             },
             'media' => function ($model) {
-                return array_map(function ($media) {
-                    return [
-                        'id' => $media->id,
-                        'file_id' => $media->file_id,
-                        'file_type' => $media->file_type,
-                        'path' => $media->filepath
-                    ];
-                }, $model->media);
+                return $model->media->file_path ?? null;
             },
             'posts' => function ($model) {
                 return array_map(function ($post) {
                     return [
                         'id' => $post->id,
                         'title' => $post->title,
-                        'slug' => $post->slug,
                         'published_at' => $post->published_at
                     ];
                 }, $model->posts);

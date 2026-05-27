@@ -2,6 +2,8 @@
 
 namespace app\models;
 
+use app\behaviors\BypassSoftDeleteBehavior;
+use app\behaviors\SoftDeleteBehavior;
 use app\models\query\TagQuery;
 use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -23,7 +25,7 @@ class Tag extends \yii\db\ActiveRecord
     public static $bypassDeleteFilter = false;
 
     public function scenarios()
-    { 
+    {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['name'];
         $scenarios[self::SCENARIO_UPDATE] = ['name'];
@@ -51,6 +53,9 @@ class Tag extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
+            'bypassSoftDelete' => [
+                'class' => BypassSoftDeleteBehavior::class,
+            ],
             'timestamp' => [
                 'class' => TimestampBehavior::class,
                 'value' => function () {
@@ -64,10 +69,7 @@ class Tag extends \yii\db\ActiveRecord
                 'attribute' => 'name'
             ],
             'softDelete' => [
-                'class' => \app\behaviors\SoftDeleteBehavior::class,
-            ],
-            'bypassSoftDelete' => [
-                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+                'class' => SoftDeleteBehavior::class,
             ],
         ];
     }

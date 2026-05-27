@@ -24,7 +24,7 @@ class OrderController extends ApiController
 
     public function actionFilter($status)
     {
-        $query = Order::find()->filterByStatus((int) $status);
+        $query = Order::find()->filterByStatus((int) $status)->withRelations();
 
         return new ActiveDataProvider([
             'query' => $query,

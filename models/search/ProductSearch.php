@@ -49,10 +49,6 @@ class ProductSearch extends Product
             ->withRelations()
             ->withActiveCategory();
 
-        if (!empty($this->category_id)) {
-            $query->byCategory($this->category_id);
-        }
-
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -84,6 +80,10 @@ class ProductSearch extends Product
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
             return $dataProvider;
+        }
+
+        if (!empty($this->category_id)) {
+            $query->byCategory($this->category_id);
         }
 
         // grid filtering conditions

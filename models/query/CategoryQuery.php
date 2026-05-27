@@ -23,7 +23,9 @@ class CategoryQuery extends ActiveQuery
     public function withRelations()
     {
         return $this->with([
-            'products',
+            'products.category',
+            'products.media',
+            'products.posts',
             'media',
         ]);
     }

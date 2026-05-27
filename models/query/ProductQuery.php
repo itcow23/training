@@ -50,6 +50,7 @@ class ProductQuery extends \yii\db\ActiveQuery
         return $this->with([
             'category',
             'media',
+            'posts',
         ]);
     }
 

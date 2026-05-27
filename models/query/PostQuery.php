@@ -38,6 +38,7 @@ class PostQuery extends \yii\db\ActiveQuery
             'comments',
             'media',
             'tags',
+            'products',
         ]);
     }
 

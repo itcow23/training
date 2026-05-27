@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\behaviors\BypassSoftDeleteBehavior;
 use app\behaviors\MediaBehavior;
+use app\behaviors\SoftDeleteBehavior;
 use app\models\query\CategoryQuery;
 use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -44,6 +46,9 @@ class Category extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
+            'bypassSoftDelete' => [
+                'class' => BypassSoftDeleteBehavior::class,
+            ],
             'slug' => [
                 'class' => SluggableBehavior::class,
                 'ensureUnique' => true,
@@ -62,10 +67,7 @@ class Category extends \yii\db\ActiveRecord
                 'folder' => 'category',
             ],
             'softDelete' => [
-                'class' => \app\behaviors\SoftDeleteBehavior::class,
-            ],
-            'bypassSoftDelete' => [
-                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+                'class' => SoftDeleteBehavior::class,
             ],
         ];
     }
@@ -110,17 +112,17 @@ class Category extends \yii\db\ActiveRecord
             'name',
             'status',
             'products' => function ($model) {
-                return $model->products;
+               return array_map(function ($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'price' => $product->price,
+                        'status' => $product->status,
+                    ];
+                }, $model->products);
             },
             'media' => function ($model) {
-                return array_map(function ($media) {
-                    return [
-                        'id' => $media->id,
-                        'file_id' => $media->file_id,
-                        'file_type' => $media->file_type,
-                        'filepath' => $media->filepath,
-                    ];
-                }, $model->media);
+                 return array_column($model->media, 'filepath');
             },
         ];
     }

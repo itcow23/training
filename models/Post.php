@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use app\behaviors\BypassSoftDeleteBehavior;
 use app\behaviors\MediaBehavior;
+use app\behaviors\SoftDeleteBehavior;
 use app\models\query\PostQuery;
 use yii\behaviors\TimestampBehavior;
 use yii\web\UploadedFile;
@@ -53,6 +55,9 @@ class Post extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
+            'bypassSoftDelete' => [
+                'class' => BypassSoftDeleteBehavior::class,
+            ],
             'slug' => [
                 'class' => SluggableBehavior::class,
                 'ensureUnique' => true,
@@ -71,10 +76,7 @@ class Post extends \yii\db\ActiveRecord
                 'folder' => 'post',
             ],
             'softDelete' => [
-                'class' => \app\behaviors\SoftDeleteBehavior::class,
-            ],
-            'bypassSoftDelete' => [
-                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+                'class' => SoftDeleteBehavior::class,
             ],
         ];
     }
@@ -177,6 +179,9 @@ class Post extends \yii\db\ActiveRecord
             'status',
             'published_at',
             'comment' => function ($model) {
+                if ($model->isRelationPopulated('comments')) {
+                    return count($model->comments);
+                }
                 return (int)$model->getComments()->count();
             },
             'rating' => function ($model) {

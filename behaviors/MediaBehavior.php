@@ -43,6 +43,7 @@ class MediaBehavior extends Behavior
 
         try {
             if (!empty($removed)) {
+                //dd($removed);
                 $this->removeMedia($model, $removed);
             }
 
@@ -68,6 +69,10 @@ class MediaBehavior extends Behavior
             ])
             ->all();
 
+        if (empty($medias)) {
+            throw new Exception('No media found to remove.');
+        }
+        
         foreach ($medias as $media) {
             $path = $media->filepath;
 

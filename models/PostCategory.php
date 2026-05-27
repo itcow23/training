@@ -2,6 +2,8 @@
 
 namespace app\models;
 
+use app\behaviors\BypassSoftDeleteBehavior;
+use app\behaviors\SoftDeleteBehavior;
 use app\models\query\PostCategoryQuery;
 use Override;
 use yii\behaviors\SluggableBehavior;
@@ -73,6 +75,9 @@ class PostCategory extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
+            'bypassSoftDelete' => [
+                'class' => BypassSoftDeleteBehavior::class,
+            ],
             'slug' => [
                 'class' => SluggableBehavior::class,
                 'ensureUnique' => true,
@@ -86,10 +91,7 @@ class PostCategory extends \yii\db\ActiveRecord
                 }
             ],
             'softDelete' => [
-                'class' => \app\behaviors\SoftDeleteBehavior::class,
-            ],
-            'bypassSoftDelete' => [
-                'class' => \app\behaviors\BypassSoftDeleteBehavior::class,
+                'class' => SoftDeleteBehavior::class,
             ],
         ];
     }
@@ -123,7 +125,7 @@ class PostCategory extends \yii\db\ActiveRecord
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        
+
         if (!$insert && isset($changedAttributes['is_deleted']) && $this->is_deleted == 1) {
             // Cascade soft delete all posts under this category!
             foreach ($this->posts as $post) {
