@@ -122,7 +122,7 @@ class Product extends \yii\db\ActiveRecord
                 return $model->category ? $model->category->name : null;
             },
             'media' => function ($model) {
-                return $model->media->file_path ?? null;
+                return array_column($model->media, 'filepath');
             },
             'posts' => function ($model) {
                 return array_map(function ($post) {
