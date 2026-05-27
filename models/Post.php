@@ -43,6 +43,7 @@ class Post extends \yii\db\ActiveRecord
     const SCENARIO_CREATE = 'create';
     const SCENARIO_UPDATE = 'update';
     const SCENARIO_UPDATE_STATUS = 'update_status';
+    const SCENARIO_DELETE = 'delete';
 
     public $image;
     public $removed_image;
@@ -96,6 +97,7 @@ class Post extends \yii\db\ActiveRecord
         $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'category_id', 'image', 'add_tag', 'add_product'];
         $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'removed_tag', 'add_product', 'removed_product'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
+        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
         return $scenarios;
     }
 
@@ -302,7 +304,10 @@ class Post extends \yii\db\ActiveRecord
     public function transactions()
     {
         return [
-            self::SCENARIO_DEFAULT => self::OP_ALL,
+            self::SCENARIO_CREATE => self::OP_INSERT,
+            self::SCENARIO_UPDATE => self::OP_UPDATE,
+            self::SCENARIO_UPDATE_STATUS => self::OP_UPDATE,
+            self::SCENARIO_DELETE => self::OP_UPDATE,
         ];
     }
 

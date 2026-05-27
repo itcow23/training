@@ -25,6 +25,7 @@ class PostCategory extends \yii\db\ActiveRecord
     const SCENARIO_CREATE = 'create';
     const SCENARIO_UPDATE = 'update';
     const SCENARIO_UPDATE_STATUS = 'update_status';
+    const SCENARIO_DELETE = 'delete';
 
     public static $bypassDeleteFilter = false;
 
@@ -34,6 +35,7 @@ class PostCategory extends \yii\db\ActiveRecord
         $scenarios[self::SCENARIO_CREATE] = ['name', 'status'];
         $scenarios[self::SCENARIO_UPDATE] = ['name', 'status'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
+        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
         return $scenarios;
     }
 
@@ -99,7 +101,10 @@ class PostCategory extends \yii\db\ActiveRecord
     public function transactions()
     {
         return [
-            self::SCENARIO_DEFAULT => self::OP_ALL,
+            self::SCENARIO_CREATE => self::OP_INSERT,
+            self::SCENARIO_UPDATE => self::OP_UPDATE,
+            self::SCENARIO_UPDATE_STATUS => self::OP_UPDATE,
+            self::SCENARIO_DELETE => self::OP_UPDATE,
         ];
     }
 

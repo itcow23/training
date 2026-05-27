@@ -26,6 +26,7 @@ class Category extends \yii\db\ActiveRecord
     const SCENARIO_CREATE = 'create';
     const SCENARIO_UPDATE = 'update';
     const SCENARIO_UPDATE_STATUS = 'update_status';
+    const SCENARIO_DELETE = 'delete';
 
     public $image;
     public $removed_image;
@@ -78,6 +79,7 @@ class Category extends \yii\db\ActiveRecord
         $scenarios[self::SCENARIO_CREATE] = ['name', 'status', 'image'];
         $scenarios[self::SCENARIO_UPDATE] = ['name', 'status', 'image', 'removed_image'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
+        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
         return $scenarios;
     }
 
@@ -157,7 +159,10 @@ class Category extends \yii\db\ActiveRecord
     public function transactions()
     {
         return [
-            self::SCENARIO_DEFAULT => self::OP_ALL,
+            self::SCENARIO_CREATE => self::OP_INSERT,
+            self::SCENARIO_UPDATE => self::OP_UPDATE,
+            self::SCENARIO_UPDATE_STATUS => self::OP_UPDATE,
+            self::SCENARIO_DELETE => self::OP_UPDATE,
         ];
     }
 
