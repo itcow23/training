@@ -22,6 +22,7 @@ class Tag extends \yii\db\ActiveRecord
 {
     const SCENARIO_CREATE = 'create';
     const SCENARIO_UPDATE = 'update';
+    const SCENARIO_DELETE = 'delete';
     public static $bypassDeleteFilter = false;
 
     public function scenarios()
@@ -29,7 +30,17 @@ class Tag extends \yii\db\ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['name'];
         $scenarios[self::SCENARIO_UPDATE] = ['name'];
+        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
         return $scenarios;
+    }
+
+    public function transactions()
+    {
+        return [
+            self::SCENARIO_CREATE => self::OP_INSERT,
+            self::SCENARIO_UPDATE => self::OP_UPDATE,
+            self::SCENARIO_DELETE => self::OP_UPDATE,
+        ];
     }
 
     public function rules()
