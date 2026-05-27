@@ -64,15 +64,16 @@ $config = [
                             }
                         }
                     } else {
-                        if ($response->data instanceof \yii\data\ActiveDataProvider) {
-                            $pagination = $response->data->getPagination();
+                        $data = $response->data;
+                        $headers = $response->headers;
+                        if ($headers->has('X-Pagination-Total-Count')) {
                             $data = [
-                                'items' => $response->data->getModels(),
+                                'items' => $response->data,
                                 'pagination' => [
-                                    'total' => (int)$response->data->getTotalCount(),
-                                    'page' => $pagination ? $pagination->getPage() + 1 : 1,
-                                    'pageSize' => $pagination ? $pagination->getPageSize() : count($response->data->getModels()),
-                                    'pageCount' => $pagination ? $pagination->getPageCount() : 1,
+                                    'totalCount' => (int)$headers->get('X-Pagination-Total-Count'),
+                                    'pageCount' => (int)$headers->get('X-Pagination-Page-Count'),
+                                    'currentPage' => (int)$headers->get('X-Pagination-Current-Page'),
+                                    'perPage' => (int)$headers->get('X-Pagination-Per-Page'),
                                 ],
                             ];
                         } else {

@@ -19,7 +19,7 @@ class OrderSearch extends Order
     public function rules()
     {
         return [
-            [['id', 'order_code', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'created_at', 'updated_at'], 'safe'],
+            [['id', 'order_code', 'shipping_name', 'shipping_email', 'shipping_phone', 'shipping_address', 'created_at', 'updated_at', 'key'], 'safe'],
             [['account_id', 'membership_level_id', 'pay_method', 'status'], 'integer'],
             [['discount', 'subtotal', 'final_total', 'shipping_fee'], 'number'],
         ];

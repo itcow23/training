@@ -14,7 +14,7 @@ class OrderController extends ApiController
     public function actionIndex()
     {
         $searchModel = new OrderSearch();
-        return $searchModel->search($this->request->queryParams);
+        return $searchModel->search($this->request->queryParams, '');
     }
 
     public function actionView($id)
