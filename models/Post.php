@@ -91,10 +91,41 @@ class Post extends \yii\db\ActiveRecord
         return false;
     }
 
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if ((int)$this->status === self::STATUS_PUBLISHED) {
+                if ($insert) {
+                    $this->published_at = date('Y-m-d H:i:s');
+                } else {
+                    $oldPublishedAt = $this->getOldAttribute('published_at');
+                    if (empty($oldPublishedAt)) {
+                        $this->published_at = date('Y-m-d H:i:s');
+                    } else {
+                        $this->published_at = $oldPublishedAt;
+                    }
+                }
+            } else {
+                if ($insert) {
+                    $this->published_at = null;
+                } else {
+                    $oldPublishedAt = $this->getOldAttribute('published_at');
+                    if (!empty($oldPublishedAt)) {
+                        $this->published_at = $oldPublishedAt;
+                    } else {
+                        $this->published_at = null;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'category_id', 'image', 'add_tag', 'add_product'];
+        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'add_tag', 'add_product'];
         $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'removed_tag', 'add_product', 'removed_product'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
         $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];

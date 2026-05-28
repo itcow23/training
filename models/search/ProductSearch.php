@@ -13,7 +13,7 @@ use app\models\Product;
 class ProductSearch extends Product
 {
     public $key;
-    public $pageSize = 5;
+    public $pageSize = 10;
     /**
      * {@inheritdoc}
      */

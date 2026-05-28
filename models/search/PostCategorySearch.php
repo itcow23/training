@@ -19,7 +19,7 @@ class PostCategorySearch extends PostCategory
     public function rules()
     {
         return [
-            [['id'], 'integer'],
+            [['id', 'status'], 'integer'],
             [['name', 'slug', 'created_at', 'updated_at'], 'safe'],
             ['key', 'safe'],
             [['pageSize'], 'integer']
@@ -75,6 +75,7 @@ class PostCategorySearch extends PostCategory
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
+            'status' => $this->status,
             'name' => $this->name,
         ]);
 

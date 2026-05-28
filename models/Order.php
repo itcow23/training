@@ -59,7 +59,14 @@ class Order extends \yii\db\ActiveRecord
             'id',
             'order_code',
             'account_id',
+            'shipping_name',
+            'shipping_email',
+            'shipping_phone',
+            'shipping_address',
             'membership_level_id',
+            'membership_level' => function ($model) {
+                return $model->membershipLevel ? $model->membershipLevel->name : null;
+            },
             'discount',
             'subtotal',
             'shipping_fee',
@@ -141,6 +148,16 @@ class Order extends \yii\db\ActiveRecord
     public function getOrderItems()
     {
         return $this->hasMany(OrderItem::class, ['order_id' => 'id']);
+    }
+
+    /**
+     * Gets query for [[MembershipLevel]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMembershipLevel()
+    {
+        return $this->hasOne(MembershipLevel::class, ['id' => 'membership_level_id']);
     }
 
     public static function find()
