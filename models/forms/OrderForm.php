@@ -202,6 +202,7 @@ class OrderForm extends BaseForm
                 $detail->order_id = $model->id;
                 $detail->product_id = $product->id;
                 $detail->quantity = $item['quantity'];
+                $detail->product_name = $product->name;
                 $detail->unit_price = $price;
                 $detail->total_price = $price * $item['quantity'];
 

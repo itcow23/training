@@ -78,8 +78,8 @@ class Order extends \yii\db\ActiveRecord
                 return array_map(function ($orderItem) {
                     return [
                         'product_id' => $orderItem->product_id,
-                        'product_name' => $orderItem->product->name ?? null,
-                        'discount' => $orderItem->product->discount . '%' ?? '0%',
+                        'product_name' => $orderItem->product_name ?? ($orderItem->product->name ?? ('Sản phẩm ID: ' . $orderItem->product_id)),
+                        'discount' => isset($orderItem->product) ? ($orderItem->product->discount . '%') : '0%',
                         'unit_price' => (float)$orderItem->unit_price,
                         'quantity' => (int)$orderItem->quantity,
                         'total_price' => (float)$orderItem->total_price
