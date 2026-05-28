@@ -167,7 +167,12 @@ class OrderForm extends BaseForm
                     throw new \RuntimeException('Product does not exist.');
                 }
                 $product = $productList[$item['product_id']];
-                $subtotal += $product->price * $item['quantity'];
+                if($product->discount > 0) {
+                    $price = $product->price * (1 - $product->discount / 100);
+                } else {
+                    $price = $product->price;
+                }
+                $subtotal += $price * $item['quantity'];
             }
 
             $discountAmount = 0;
@@ -197,8 +202,8 @@ class OrderForm extends BaseForm
                 $detail->order_id = $model->id;
                 $detail->product_id = $product->id;
                 $detail->quantity = $item['quantity'];
-                $detail->unit_price = $product->price;
-                $detail->total_price = $product->price * $item['quantity'];
+                $detail->unit_price = $price;
+                $detail->total_price = $price * $item['quantity'];
 
                 if (!$detail->save()) {
                     throw new \RuntimeException(json_encode($detail->errors));
