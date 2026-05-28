@@ -48,9 +48,7 @@ class Post extends \yii\db\ActiveRecord
     public $image;
     public $removed_image;
     public $add_tag;
-    public $removed_tag;
     public $add_product;
-    public $removed_product;
     public static $bypassDeleteFilter = false;
 
     public function behaviors()
@@ -126,7 +124,7 @@ class Post extends \yii\db\ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'add_tag', 'add_product'];
-        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'removed_tag', 'add_product', 'removed_product'];
+        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'add_product'];
         $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
         $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
         return $scenarios;
@@ -153,7 +151,7 @@ class Post extends \yii\db\ActiveRecord
                 'maxSize' => 5 * 1024 * 1024,
             ],
             [['removed_image'], 'each', 'rule' => ['integer']],
-            [['add_tag', 'removed_tag', 'add_product', 'removed_product'], 'each', 'rule' => ['integer']],
+            [['add_tag', 'add_product'], 'each', 'rule' => ['integer']],
         ];
     }
 
@@ -161,30 +159,34 @@ class Post extends \yii\db\ActiveRecord
     {
         parent::afterSave($insert, $changedAttributes);
 
-        $this->syncRelation(PostTag::class, 'tag_id', $this->add_tag, $this->removed_tag);
+        $this->syncRelation(PostTag::class, 'tag_id', $this->add_tag);
 
-        $this->syncRelation(PostProduct::class, 'product_id', $this->add_product, $this->removed_product);
+        $this->syncRelation(PostProduct::class, 'product_id', $this->add_product);
     }
 
-    protected function syncRelation(string $modelClass, string $fkTargetColumn, ?array $addIds, ?array $removedIds)
+    protected function syncRelation(string $modelClass, string $fkTargetColumn, ?array $newIds)
     {
-        if (!empty($removedIds) && is_array($removedIds)) {
-            $modelClass::deleteAll(['post_id' => $this->id, $fkTargetColumn => $removedIds]);
+        if ($newIds === null) {
+            return;
         }
 
-        if (!empty($addIds) && is_array($addIds)) {
-            $existingIds = $modelClass::find()
-                ->select([$fkTargetColumn])
-                ->where(['post_id' => $this->id])
-                ->column();
+        $existingIds = $modelClass::find()
+            ->select([$fkTargetColumn])
+            ->where(['post_id' => $this->id])
+            ->column();
 
-            $newIds = array_diff($addIds, $existingIds);
+        $toDeleteIds = array_diff($existingIds, $newIds);
+        if (!empty($toDeleteIds)) {
+            $modelClass::deleteAll(['post_id' => $this->id, $fkTargetColumn => $toDeleteIds]);
+        }
 
+        $toAddIds = array_diff($newIds, $existingIds);
+        if (!empty($toAddIds)) {
             $rows = [];
             $tableName = $modelClass::tableName();
             $hasCreatedAt = $modelClass::getTableSchema()->getColumn('created_at') !== null;
 
-            foreach ($newIds as $targetId) {
+            foreach ($toAddIds as $targetId) {
                 if ($hasCreatedAt) {
                     $rows[] = [$this->id, $targetId, date('Y-m-d H:i:s')];
                 } else {

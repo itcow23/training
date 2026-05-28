@@ -127,6 +127,7 @@ class Product extends \yii\db\ActiveRecord
     {
         return [
             'id',
+            'category_id',
             'name',
             'price',
             'status',
@@ -136,7 +137,12 @@ class Product extends \yii\db\ActiveRecord
                 return $model->category ? $model->category->name : null;
             },
             'media' => function ($model) {
-                return array_column($model->media, 'filepath');
+                return array_map(function ($media) {
+                    return [
+                        'id' => $media->id,
+                        'filepath' => $media->filepath
+                    ];
+                }, $model->media);
             },
             'posts' => function ($model) {
                 return array_map(function ($post) {

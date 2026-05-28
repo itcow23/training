@@ -90,6 +90,7 @@ class Category extends \yii\db\ActiveRecord
     {
         return [
             [['name'], 'required'],
+            [['name'], 'string', 'max' => 255],
             [['name'], 'unique'],
             [['status'], 'integer'],
             [['status'], 'in', 'range' => [0, 1]],
