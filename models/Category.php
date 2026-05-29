@@ -2,13 +2,14 @@
 
 namespace app\models;
 
-use app\behaviors\BypassSoftDeleteBehavior;
+use app\behaviors\DateTimeBehavior;
 use app\behaviors\MediaBehavior;
+use app\behaviors\SlugBehavior;
 use app\behaviors\SoftDeleteBehavior;
+use app\models\base\BaseCategory;
+use app\models\Product;
+use app\models\Media;
 use app\models\query\CategoryQuery;
-use yii\behaviors\SluggableBehavior;
-use yii\behaviors\TimestampBehavior;
-use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "category".
@@ -21,46 +22,23 @@ use yii\web\UploadedFile;
  *
  * @property Product[] $products
  */
-class Category extends \yii\db\ActiveRecord
+class Category extends BaseCategory
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
-    const SCENARIO_UPDATE_STATUS = 'update_status';
-    const SCENARIO_DELETE = 'delete';
 
-    public $image;
-    public $removed_image;
-    public static $bypassDeleteFilter = false;
-
-    public function beforeValidate()
-    {
-        if (parent::beforeValidate()) {
-            $this->image = UploadedFile::getInstancesByName('image');
-            return true;
-        }
-        return false;
-    }
-
-    /**
+      /**
      * {@inheritdoc}
      */
     public function behaviors()
     {
         return [
-            'bypassSoftDelete' => [
-                'class' => BypassSoftDeleteBehavior::class,
-            ],
             'slug' => [
-                'class' => SluggableBehavior::class,
-                'ensureUnique' => true,
-                'immutable' => false,
-                'attribute' => 'name'
+                'class' => SlugBehavior::class,
+                'uniqueValidator' => [
+                    'targetClass' => BaseCategory::class,
+                ],
             ],
             'timestamp' => [
-                'class' => TimestampBehavior::class,
-                'value' => function () {
-                    return date('Y-m-d H:i:s');
-                },
+                'class' => DateTimeBehavior::class,
             ],
             'media' => [
                 'class' => MediaBehavior::class,
@@ -73,39 +51,14 @@ class Category extends \yii\db\ActiveRecord
         ];
     }
 
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['name', 'status', 'image'];
-        $scenarios[self::SCENARIO_UPDATE] = ['name', 'status', 'image', 'removed_image'];
-        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
-        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
-        return $scenarios;
-    }
-
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
-        return [
-            [['name'], 'required'],
-            [['name'], 'string', 'max' => 255],
-            [['name'], 'unique'],
-            [['status'], 'integer'],
-            [['status'], 'in', 'range' => [0, 1]],
-            [['status'], 'default', 'value' => 1],
-            [
-                ['image'],
-                'file',
-                'skipOnEmpty' => true,
-                'maxFiles' => 10,
-                'extensions' => ['jpg', 'jpeg', 'png', 'webp'],
-                'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
-                'maxSize' => 5 * 1024 * 1024,
-            ],
-            [['removed_image'], 'each', 'rule' => ['integer']],
-        ];
+        return array_merge(parent::rules(), [
+            [['status', 'is_deleted'], 'in', 'range' => [0, 1]],
+        ]);
     }
 
     public function fields()
@@ -131,13 +84,6 @@ class Category extends \yii\db\ActiveRecord
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'category';
-    }
-    /**
      * Gets query for [[Products]].
      *
      * @return \yii\db\ActiveQuery
@@ -157,15 +103,6 @@ class Category extends \yii\db\ActiveRecord
         return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'category']);
     }
 
-    public function transactions()
-    {
-        return [
-            self::SCENARIO_CREATE => self::OP_INSERT,
-            self::SCENARIO_UPDATE => self::OP_UPDATE,
-            self::SCENARIO_UPDATE_STATUS => self::OP_UPDATE,
-            self::SCENARIO_DELETE => self::OP_UPDATE,
-        ];
-    }
 
     public function afterSave($insert, $changedAttributes)
     {
@@ -179,13 +116,10 @@ class Category extends \yii\db\ActiveRecord
         }
     }
 
-    public static function find()
+      public static function find()
     {
         $query = new CategoryQuery(get_called_class());
-        if (!self::$bypassDeleteFilter) {
-            $query->andWhere(['category.is_deleted' => 0]);
-        }
-        return $query;
+        return $query->notDeleted();
     }
 
     public static function findWithDeleted()

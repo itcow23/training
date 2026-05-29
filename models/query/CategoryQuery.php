@@ -45,4 +45,11 @@ class CategoryQuery extends ActiveQuery
             $keyword,
         ]);
     }
+
+    public function notDeleted()
+    {
+        return $this->andWhere([
+            'is_deleted' => 0,
+        ]);
+    }
 }

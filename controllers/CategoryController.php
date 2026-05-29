@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\Category;
+use app\models\forms\CategoryForm;
 use app\models\search\CategorySearch;
 use yii\web\NotFoundHttpException;
 
@@ -21,7 +21,7 @@ class CategoryController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Category(['scenario' => Category::SCENARIO_CREATE]);
+        $model = new CategoryForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -34,7 +34,6 @@ class CategoryController extends ApiController
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $model->scenario = Category::SCENARIO_UPDATE;
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -54,12 +53,12 @@ class CategoryController extends ApiController
         return null;
     }
 
-    protected function findModel($id)
+   protected function findModel($id)
     {
-        $model = Category::find()->andWhere(['id' => $id])->withRelations()->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Category not found.');
+        if (($model = CategoryForm::findOne(['id' => $id])) !== null) {
+            return $model;
         }
-        return $model;
+
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 }
