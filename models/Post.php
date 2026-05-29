@@ -54,9 +54,6 @@ class Post extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            'bypassSoftDelete' => [
-                'class' => BypassSoftDeleteBehavior::class,
-            ],
             'slug' => [
                 'class' => SluggableBehavior::class,
                 'ensureUnique' => true,
@@ -347,9 +344,6 @@ class Post extends \yii\db\ActiveRecord
     public static function find()
     {
         $query = new PostQuery(get_called_class());
-        if (!self::$bypassDeleteFilter) {
-            $query->andWhere(['post.is_deleted' => 0]);
-        }
         return $query;
     }
 

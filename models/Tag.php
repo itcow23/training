@@ -64,9 +64,6 @@ class Tag extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            'bypassSoftDelete' => [
-                'class' => BypassSoftDeleteBehavior::class,
-            ],
             'timestamp' => [
                 'class' => TimestampBehavior::class,
                 'value' => function () {

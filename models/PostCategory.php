@@ -77,9 +77,6 @@ class PostCategory extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            'bypassSoftDelete' => [
-                'class' => BypassSoftDeleteBehavior::class,
-            ],
             'slug' => [
                 'class' => SluggableBehavior::class,
                 'ensureUnique' => true,
