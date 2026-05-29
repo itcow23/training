@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\PostCategory;
+use app\models\forms\PostCategoryForm;
 use app\models\search\PostCategorySearch;
 use yii\web\NotFoundHttpException;
 
@@ -21,8 +21,7 @@ class PostCategoryController extends ApiController
 
     public function actionCreate()
     {
-        $model = new PostCategory(['scenario' => PostCategory::SCENARIO_CREATE]);
-
+        $model = new PostCategoryForm();
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
         }
@@ -34,7 +33,6 @@ class PostCategoryController extends ApiController
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $model->scenario = PostCategory::SCENARIO_UPDATE;
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -56,10 +54,10 @@ class PostCategoryController extends ApiController
 
     protected function findModel($id)
     {
-        $model = PostCategory::find()->andWhere(['id' => $id])->withRelations()->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Post category not found.');
+        if (($model = PostCategoryForm::findOne(['id' => $id])) !== null) {
+            return $model;
         }
-        return $model;
+
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 }
