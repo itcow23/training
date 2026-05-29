@@ -25,7 +25,7 @@ use app\models\query\CategoryQuery;
 class Category extends BaseCategory
 {
 
-      /**
+    /**
      * {@inheritdoc}
      */
     public function behaviors()
@@ -56,8 +56,19 @@ class Category extends BaseCategory
      */
     public function rules()
     {
+        $model = $this;
         return array_merge(parent::rules(), [
             [['status', 'is_deleted'], 'in', 'range' => [0, 1]],
+            [['name'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
+                if (!$model->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $model->id]]);
+                }
+            }],
+            [['slug'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
+                if (!$model->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $model->id]]);
+                }
+            }],
         ]);
     }
 
@@ -68,7 +79,7 @@ class Category extends BaseCategory
             'name',
             'status',
             'products' => function ($model) {
-               return array_map(function ($product) {
+                return array_map(function ($product) {
                     return [
                         'id' => $product->id,
                         'name' => $product->name,
@@ -78,7 +89,7 @@ class Category extends BaseCategory
                 }, $model->products);
             },
             'media' => function ($model) {
-                 return array_column($model->media, 'filepath');
+                return array_column($model->media, 'filepath');
             },
         ];
     }
@@ -116,7 +127,7 @@ class Category extends BaseCategory
         }
     }
 
-      public static function find()
+    public static function find()
     {
         $query = new CategoryQuery(get_called_class());
         return $query->notDeleted();

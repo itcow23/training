@@ -35,7 +35,6 @@ class BaseCategory extends \yii\db\ActiveRecord
      */
     public function rules()
     {
-        $model = $this;
         return [
             [['slug', 'created_at', 'updated_at', 'deleted_at'], 'default', 'value' => null],
             [['status'], 'default', 'value' => 1],
@@ -44,16 +43,8 @@ class BaseCategory extends \yii\db\ActiveRecord
             [['created_at', 'updated_at', 'deleted_at'], 'safe'],
             [['status', 'is_deleted'], 'integer'],
             [['name', 'slug'], 'string', 'max' => 255],
-            [['name'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
-                }
-            }],
-            [['slug'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
-                }
-            }],
+            [['slug'], 'unique'],
+            [['name'], 'unique'],
         ];
     }
 
