@@ -3,11 +3,9 @@
 namespace app\behaviors;
 
 use app\models\Media;
-use Exception;
 use Yii;
 use yii\base\Behavior;
 use yii\db\ActiveRecord;
-use RuntimeException;
 
 class MediaBehavior extends Behavior
 {
@@ -39,23 +37,12 @@ class MediaBehavior extends Behavior
             return;
         }
 
-        $transaction = Yii::$app->db->beginTransaction();
+        if (!empty($removed)) {
+            $this->removeMedia($model, $removed);
+        }
 
-        try {
-            if (!empty($removed)) {
-                //dd($removed);
-                $this->removeMedia($model, $removed);
-            }
-
-            if (!empty($files)) {
-                $this->storeMedia($model, $files);
-            }
-
-            $transaction->commit();
-        } catch (\Throwable $e) {
-            $transaction->rollBack();
-
-            throw $e;
+        if (!empty($files)) {
+            $this->storeMedia($model, $files);
         }
     }
 
@@ -69,18 +56,28 @@ class MediaBehavior extends Behavior
             ])
             ->all();
 
-        if (empty($medias)) {
-            throw new Exception('No media found to remove.');
+        $foundIds = array_column($medias, 'id');
+        $notFoundIds = array_diff($removed, $foundIds);
+
+        if (!empty($notFoundIds)) {
+            Yii::$app->media->logError("Media records not found for deletion for IDs: " . implode(', ', $notFoundIds));
         }
-        
-        foreach ($medias as $media) {
-            $path = $media->filepath;
 
-            if (!$media->delete()) {
-                throw new Exception('Failed to delete media record.');
-            }
+        if (empty($medias)) {
+            return;
+        }
 
-            Yii::$app->media->delete($path);
+        $filepaths = array_column($medias, 'filepath');
+        Yii::$app->media->delete($filepaths);
+
+        try {
+            Media::deleteAll([
+                'id' => $removed,
+                'file_id' => $model->id,
+                'file_type' => $model->tableName(),
+            ]);
+        } catch (\Throwable $e) {
+            Yii::$app->media->logError("Failed to delete media records from database: " . $e->getMessage());
         }
     }
 
@@ -93,20 +90,30 @@ class MediaBehavior extends Behavior
                 $folder = strtolower(end($classParts));
             }
 
-            $uploaded = Yii::$app->media->upload($file, $folder);
+            try {
+                $uploaded = Yii::$app->media->upload($file, $folder);
 
-            if (!$uploaded) {
-                throw new RuntimeException('Failed to upload image.');
-            }
+                if (!$uploaded) {
+                    $msg = "Failed to upload image '{$file->name}'.";
+                    Yii::$app->media->logError($msg);
+                    continue;
+                }
 
-            $media = new Media();
-            $media->file_id = $model->id;
-            $media->file_type = $model->tableName();
-            $media->collection = $this->collection;
-            $media->filepath = $uploaded['url'];
+                $media = new Media();
+                $media->file_id = $model->id;
+                $media->file_type = $model->tableName();
+                $media->collection = $this->collection;
+                $media->filepath = $uploaded['url'];
 
-            if (!$media->save()) {
-                throw new RuntimeException('Failed to save media information.');
+                if (!$media->save()) {
+                    $msg = "Failed to save media record for '{$file->name}'. Errors: " . json_encode($media->errors);
+                    Yii::$app->media->logError($msg);
+                    continue;
+                }
+            } catch (\Throwable $e) {
+                $msg = "Error processing upload for '{$file->name}': " . $e->getMessage();
+                Yii::$app->media->logError($msg);
+                continue;
             }
         }
     }
@@ -122,11 +129,16 @@ class MediaBehavior extends Behavior
             ])
             ->all();
 
-        foreach ($medias as $media) {
+        $filepaths = array_column($medias, 'filepath');
+        Yii::$app->media->delete($filepaths);
 
-            Yii::$app->media->delete($media->filepath);
-
-            $media->delete();
+        try {
+            Media::deleteAll([
+                'file_id' => $model->id,
+                'file_type' => $model->tableName(),
+            ]);
+        } catch (\Throwable $e) {
+            Yii::$app->media->logError("Failed to delete media records from database for model {$model->id}: " . $e->getMessage());
         }
     }
 }
