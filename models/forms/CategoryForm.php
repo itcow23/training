@@ -2,6 +2,7 @@
 
 namespace app\models\forms;
 
+use app\models\base\BaseCategory;
 use app\models\Category;
 use yii\web\UploadedFile;
 
@@ -21,10 +22,23 @@ class CategoryForm extends Category
         }
         return false;
     }
+
     public function rules()
     {
+        $model = $this;
         return array_merge(parent::rules(), [
-           [
+            [['status', 'is_deleted'], 'in', 'range' => [0, 1]],
+            [['name'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
+                if (!$model->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $model->id]]);
+                }
+            }],
+            [['slug'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
+                if (!$model->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $model->id]]);
+                }
+            }],
+            [
                 ['image'],
                 'file',
                 'skipOnEmpty' => true,

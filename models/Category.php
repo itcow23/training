@@ -51,25 +51,16 @@ class Category extends BaseCategory
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
+    public function afterSave($insert, $changedAttributes)
     {
-        $model = $this;
-        return array_merge(parent::rules(), [
-            [['status', 'is_deleted'], 'in', 'range' => [0, 1]],
-            [['name'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
-                }
-            }],
-            [['slug'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
-                }
-            }],
-        ]);
+        parent::afterSave($insert, $changedAttributes);
+
+        if (!$insert && isset($changedAttributes['is_deleted']) && $this->is_deleted == 1) {
+            Product::updateAll(
+                ['is_deleted' => 1, 'deleted_at' => date('Y-m-d H:i:s')],
+                ['category_id' => $this->id, 'is_deleted' => 0]
+            );
+        }
     }
 
     public function fields()
@@ -112,19 +103,6 @@ class Category extends BaseCategory
     public function getMedia()
     {
         return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'category']);
-    }
-
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-
-        if (!$insert && isset($changedAttributes['is_deleted']) && $this->is_deleted == 1) {
-            Product::updateAll(
-                ['is_deleted' => 1, 'deleted_at' => date('Y-m-d H:i:s')],
-                ['category_id' => $this->id, 'is_deleted' => 0]
-            );
-        }
     }
 
     public static function find()
