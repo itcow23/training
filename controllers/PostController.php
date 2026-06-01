@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\Post;
+use app\models\forms\PostForm;
 use app\models\search\PostSearch;
 use yii\web\NotFoundHttpException;
 
@@ -21,7 +21,7 @@ class PostController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Post(['scenario' => Post::SCENARIO_CREATE]);
+        $model = new PostForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -34,20 +34,6 @@ class PostController extends ApiController
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $model->scenario = Post::SCENARIO_UPDATE;
-
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
-        }
-
-        $this->response->statusCode = 422;
-        return $model->getErrors();
-    }
-
-    public function actionUpdateStatus($id)
-    {
-        $model = $this->findModel($id);
-        $model->scenario = Post::SCENARIO_UPDATE_STATUS;
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -69,10 +55,10 @@ class PostController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Post::find()->andWhere(['id' => $id])->withRelations()->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Post not found.');
+        $model = PostForm::find()->byId($id)->notDeleted()->one();
+        if ($model !== null) {
+            return $model;
         }
-        return $model;
+        throw new NotFoundHttpException('Post not found.');
     }
 }

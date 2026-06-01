@@ -2,69 +2,24 @@
 
 namespace app\models;
 
-use app\behaviors\BypassSoftDeleteBehavior;
+use app\behaviors\DateTimeBehavior;
 use app\behaviors\MediaBehavior;
+use app\behaviors\SlugBehavior;
 use app\behaviors\SoftDeleteBehavior;
+use app\models\base\BasePost;
 use app\models\query\PostQuery;
-use yii\behaviors\TimestampBehavior;
-use yii\web\UploadedFile;
-use app\models\PostTag;
-use Yii;
-use yii\behaviors\SluggableBehavior;
 
-/**
- * This is the model class for table "post".
- *
- * @property int $id
- * @property string $title
- * @property string|null $description
- * @property string $content
- * @property string $published_at
- * @property int $status
- * @property string $slug
- * @property int $category_id
- * @property string|null $created_at
- * @property string|null $updated_at
- *
- * @property Account[] $accounts
- * @property PostCategory $category
- * @property Comment[] $comments
- * @property PostProduct[] $postProducts
- * @property PostTag[] $postTags
- * @property Rating[] $ratings
- */
-class Post extends \yii\db\ActiveRecord
+class Post extends BasePost
 {
-    const STATUS_DRAFT = 0;
-    const STATUS_PUBLISHED = 1;
-    const STATUS_HIDDEN = 2;
-    const STATUS_ARCHIVED = 3;
-
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
-    const SCENARIO_UPDATE_STATUS = 'update_status';
-    const SCENARIO_DELETE = 'delete';
-
-    public $image;
-    public $removed_image;
-    public $add_tag;
-    public $add_product;
-    public static $bypassDeleteFilter = false;
-
     public function behaviors()
     {
         return [
             'slug' => [
-                'class' => SluggableBehavior::class,
-                'ensureUnique' => true,
-                'immutable' => false,
-                'attribute' => 'title'
+                'class' => SlugBehavior::class,
+                'attribute' => 'title',
             ],
             'timestamp' => [
-                'class' => TimestampBehavior::class,
-                'value' => function () {
-                    return date('Y-m-d H:i:s');
-                }
+                'class' => DateTimeBehavior::class,
             ],
             'media' => [
                 'class' => MediaBehavior::class,
@@ -77,128 +32,6 @@ class Post extends \yii\db\ActiveRecord
         ];
     }
 
-    public function beforeValidate()
-    {
-        if (parent::beforeValidate()) {
-            $this->image = UploadedFile::getInstancesByName('image');
-            return true;
-        }
-        return false;
-    }
-
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            if ((int)$this->status === self::STATUS_PUBLISHED) {
-                if ($insert) {
-                    $this->published_at = date('Y-m-d H:i:s');
-                } else {
-                    $oldPublishedAt = $this->getOldAttribute('published_at');
-                    if (empty($oldPublishedAt)) {
-                        $this->published_at = date('Y-m-d H:i:s');
-                    } else {
-                        $this->published_at = $oldPublishedAt;
-                    }
-                }
-            } else {
-                if ($insert) {
-                    $this->published_at = null;
-                } else {
-                    $oldPublishedAt = $this->getOldAttribute('published_at');
-                    if (!empty($oldPublishedAt)) {
-                        $this->published_at = $oldPublishedAt;
-                    } else {
-                        $this->published_at = null;
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'add_tag', 'add_product'];
-        $scenarios[self::SCENARIO_UPDATE] = ['title', 'description', 'content', 'published_at', 'status', 'category_id', 'image', 'removed_image', 'add_tag', 'add_product'];
-        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
-        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
-        return $scenarios;
-    }
-
-    public function rules()
-    {
-        return [
-            [['category_id'], 'exist', 'targetClass' => PostCategory::class, 'targetAttribute' => 'id'],
-            [['title', 'content', 'category_id'], 'required'],
-            [['description', 'content'], 'string'],
-            [['published_at'], 'safe'],
-            [['status', 'category_id'], 'integer'],
-            [['title'], 'string', 'max' => 255],
-            [['status'], 'default', 'value' => self::STATUS_DRAFT],
-            [['status'], 'in', 'range' => [self::STATUS_DRAFT, self::STATUS_PUBLISHED, self::STATUS_HIDDEN, self::STATUS_ARCHIVED]],
-            [
-                ['image'],
-                'file',
-                'skipOnEmpty' => true,
-                'maxFiles' => 10,
-                'extensions' => ['jpg', 'jpeg', 'png', 'webp'],
-                'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
-                'maxSize' => 5 * 1024 * 1024,
-            ],
-            [['removed_image'], 'each', 'rule' => ['integer']],
-            [['add_tag', 'add_product'], 'each', 'rule' => ['integer']],
-        ];
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        parent::afterSave($insert, $changedAttributes);
-
-        $this->syncRelation(PostTag::class, 'tag_id', $this->add_tag);
-
-        $this->syncRelation(PostProduct::class, 'product_id', $this->add_product);
-    }
-
-    protected function syncRelation(string $modelClass, string $fkTargetColumn, ?array $newIds)
-    {
-        if ($newIds === null) {
-            return;
-        }
-
-        $existingIds = $modelClass::find()
-            ->select([$fkTargetColumn])
-            ->where(['post_id' => $this->id])
-            ->column();
-
-        $toDeleteIds = array_diff($existingIds, $newIds);
-        if (!empty($toDeleteIds)) {
-            $modelClass::deleteAll(['post_id' => $this->id, $fkTargetColumn => $toDeleteIds]);
-        }
-
-        $toAddIds = array_diff($newIds, $existingIds);
-        if (!empty($toAddIds)) {
-            $rows = [];
-            $tableName = $modelClass::tableName();
-            $hasCreatedAt = $modelClass::getTableSchema()->getColumn('created_at') !== null;
-
-            foreach ($toAddIds as $targetId) {
-                if ($hasCreatedAt) {
-                    $rows[] = [$this->id, $targetId, date('Y-m-d H:i:s')];
-                } else {
-                    $rows[] = [$this->id, $targetId];
-                }
-            }
-
-            if (!empty($rows)) {
-                $columns = $hasCreatedAt ? ['post_id', $fkTargetColumn, 'created_at'] : ['post_id', $fkTargetColumn];
-                Yii::$app->db->createCommand()
-                    ->batchInsert($tableName, $columns, $rows)
-                    ->execute();
-            }
-        }
-    }
 
     public function fields()
     {
@@ -257,8 +90,6 @@ class Post extends \yii\db\ActiveRecord
     {
         return 'post';
     }
-
-
 
     /**
      * Gets query for [[Accounts]].
@@ -331,23 +162,7 @@ class Post extends \yii\db\ActiveRecord
         return $this->hasMany(Media::class, ['file_id' => 'id'])->andWhere(['file_type' => 'post']);
     }
 
-    public function transactions()
-    {
-        return [
-            self::SCENARIO_CREATE => self::OP_INSERT,
-            self::SCENARIO_UPDATE => self::OP_UPDATE,
-            self::SCENARIO_UPDATE_STATUS => self::OP_UPDATE,
-            self::SCENARIO_DELETE => self::OP_UPDATE,
-        ];
-    }
-
     public static function find()
-    {
-        $query = new PostQuery(get_called_class());
-        return $query;
-    }
-
-    public static function findWithDeleted()
     {
         return new PostQuery(get_called_class());
     }
