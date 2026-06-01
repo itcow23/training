@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\Tag;
+use app\models\forms\TagForm;
 use app\models\search\TagSearch;
 use yii\web\NotFoundHttpException;
 
@@ -21,7 +21,7 @@ class TagController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Tag(['scenario' => Tag::SCENARIO_CREATE]);
+        $model = new TagForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -34,7 +34,6 @@ class TagController extends ApiController
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $model->scenario = Tag::SCENARIO_UPDATE;
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -56,10 +55,11 @@ class TagController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Tag::find()->andWhere(['id' => $id])->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Tag not found.');
+        $model = TagForm::find()->andWhere(['id' => $id])->notDeleted()->one();
+        if ($model !== null) {
+            return $model;
         }
-        return $model;
+
+        throw new NotFoundHttpException('The requested page does not exist.');
     }
 }

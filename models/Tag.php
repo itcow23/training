@@ -2,8 +2,8 @@
 
 namespace app\models;
 
-use app\behaviors\BypassSoftDeleteBehavior;
 use app\behaviors\SoftDeleteBehavior;
+use app\models\base\BaseTag;
 use app\models\query\TagQuery;
 use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -18,49 +18,8 @@ use yii\behaviors\TimestampBehavior;
  *
  * @property PostTag[] $postTags
  */
-class Tag extends \yii\db\ActiveRecord
+class Tag extends BaseTag
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
-    const SCENARIO_DELETE = 'delete';
-    public static $bypassDeleteFilter = false;
-
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['name'];
-        $scenarios[self::SCENARIO_UPDATE] = ['name'];
-        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
-        return $scenarios;
-    }
-
-    public function transactions()
-    {
-        return [
-            self::SCENARIO_CREATE => self::OP_INSERT,
-            self::SCENARIO_UPDATE => self::OP_UPDATE,
-            self::SCENARIO_DELETE => self::OP_UPDATE,
-        ];
-    }
-
-    public function rules()
-    {
-        return [
-            [['name'], 'required'],
-            [['name'], 'trim'],
-            [['name'], 'string', 'min' => 1, 'max' => 255],
-            [['name'], 'unique'],
-        ];
-    }
-
-    public function fields()
-    {
-        return [
-            'id',
-            'name',
-        ];
-    }
-
     public function behaviors()
     {
         return [
@@ -82,35 +41,12 @@ class Tag extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
+    public function getPosts()
     {
-        return 'tag';
-    }
-
-
-    /**
-     * Gets query for [[PostTags]].
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getPostTags()
-    {
-        return $this->hasMany(PostTag::class, ['tag_id' => 'id']);
+        return $this->hasMany(Post::class, ['id' => 'post_id'])->viaTable('post_tag', ['tag_id' => 'id']);
     }
 
     public static function find()
-    {
-        $query = new TagQuery(get_called_class());
-        if (!self::$bypassDeleteFilter) {
-            $query->andWhere(['tag.is_deleted' => 0]);
-        }
-        return $query;
-    }
-
-    public static function findWithDeleted()
     {
         return new TagQuery(get_called_class());
     }
