@@ -10,11 +10,10 @@ class TagForm extends Tag
 
    public function rules()
     {
-        $model = $this;
         return array_merge(parent::rules(), [
-            [['name'], 'unique', 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
+            [['name'], 'unique', 'filter' => function ($query) {
+                if (!$this->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $this->id]]);
                 }
                 $query->withDeleted();
             }],

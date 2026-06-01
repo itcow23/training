@@ -7,18 +7,17 @@ class PostCategoryForm extends PostCategory
 {
     public function rules()
     {
-        $model = $this;
         return array_merge(parent::rules(), [
             [['status'], 'in', 'range' => [0, 1]],
-            [['name'], 'unique', 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
+            [['name'], 'unique', 'filter' => function ($query) {
+                if (!$this->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $this->id]]);
                 }
                 $query->notDeleted();
             }],
-            [['slug'], 'unique', 'filter' => function ($query) use ($model) {
-                if (!$model->isNewRecord) {
-                    $query->andWhere(['not', ['id' => $model->id]]);
+            [['slug'], 'unique', 'filter' => function ($query) {
+                if (!$this->isNewRecord) {
+                    $query->andWhere(['not', ['id' => $this->id]]);
                 }
                 $query->notDeleted();
             }],
