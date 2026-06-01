@@ -28,15 +28,17 @@ class CategoryForm extends Category
         $model = $this;
         return array_merge(parent::rules(), [
             [['status', 'is_deleted'], 'in', 'range' => [0, 1]],
-            [['name'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
+            [['name'], 'unique', 'filter' => function ($query) use ($model) {
                 if (!$model->isNewRecord) {
                     $query->andWhere(['not', ['id' => $model->id]]);
                 }
+                $query->withDeleted();
             }],
-            [['slug'], 'unique', 'targetClass' => BaseCategory::class, 'filter' => function ($query) use ($model) {
+            [['slug'], 'unique', 'filter' => function ($query) use ($model) {
                 if (!$model->isNewRecord) {
                     $query->andWhere(['not', ['id' => $model->id]]);
                 }
+                $query->withDeleted();
             }],
             [
                 ['image'],

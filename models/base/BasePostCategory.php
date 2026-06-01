@@ -2,9 +2,6 @@
 
 namespace app\models\base;
 
-use app\models\query\PostCategoryQuery;
-use Yii;
-
 /**
  * This is the model class for table "post_category".
  *
@@ -63,10 +60,5 @@ class BasePostCategory extends \yii\db\ActiveRecord
             'is_deleted' => 'Is Deleted',
             'deleted_at' => 'Deleted At',
         ];
-    }
-
-     public static function find()
-    {
-        return new PostCategoryQuery(get_called_class());
     }
 }

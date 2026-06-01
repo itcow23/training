@@ -24,7 +24,15 @@ class CategoryController extends ApiController
         $model = new CategoryForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+            $category = $this->findModel($model->id);
+            $uploadErrors = \Yii::$app->media->getErrors();
+            if (!empty($uploadErrors)) {
+                return [
+                    'category' => $category,
+                    'upload_errors' => $uploadErrors,
+                ];
+            }
+            return $category;
         }
 
         $this->response->statusCode = 422;
@@ -36,7 +44,15 @@ class CategoryController extends ApiController
         $model = $this->findModel($id);
 
         if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+            $category = $this->findModel($model->id);
+            $uploadErrors = \Yii::$app->media->getErrors();
+            if (!empty($uploadErrors)) {
+                return [
+                    'category' => $category,
+                    'upload_errors' => $uploadErrors,
+                ];
+            }
+            return $category;
         }
 
         $this->response->statusCode = 422;
@@ -55,7 +71,8 @@ class CategoryController extends ApiController
 
    protected function findModel($id)
     {
-        if (($model = CategoryForm::findOne(['id' => $id])) !== null) {
+        $model = CategoryForm::find()->notDeleted()->byId($id)->one();
+        if ($model !== null) {
             return $model;
         }
 

@@ -54,7 +54,8 @@ class PostCategoryController extends ApiController
 
     protected function findModel($id)
     {
-        if (($model = PostCategoryForm::findOne(['id' => $id])) !== null) {
+        $model = PostCategoryForm::find()->notDeleted()->byId($id)->one();
+        if ($model !== null) {
             return $model;
         }
 

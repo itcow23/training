@@ -1,8 +1,6 @@
 <?php
 
 namespace app\models\base;
-use app\models\Product;
-use app\models\query\CategoryQuery;
 
 /**
  * This is the model class for table "category".
@@ -15,8 +13,6 @@ use app\models\query\CategoryQuery;
  * @property int $status
  * @property int $is_deleted
  * @property string|null $deleted_at
- *
- * @property Product[] $products
  */
 class BaseCategory extends \yii\db\ActiveRecord
 {
@@ -63,10 +59,5 @@ class BaseCategory extends \yii\db\ActiveRecord
             'is_deleted' => 'Is Deleted',
             'deleted_at' => 'Deleted At',
         ];
-    }
-
-     public static function find()
-    {
-        return new CategoryQuery(get_called_class());
     }
 }

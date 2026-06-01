@@ -48,9 +48,24 @@ class PostCategoryQuery extends \yii\db\ActiveQuery
         ]);
     }
 
+    public function byId($id)
+    {
+        return $this->andWhere(['id' => $id]);
+    }
+
     public function notDeleted()
     {
         return $this->andWhere(['is_deleted' => 0]);
+    }
+
+    public function deleted()
+    {
+        return $this->andWhere(['is_deleted' => 1]);
+    }
+
+    public function withDeleted()
+    {
+        return $this;
     }
 }
 

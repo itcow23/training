@@ -107,12 +107,6 @@ class Category extends BaseCategory
 
     public static function find()
     {
-        $query = new CategoryQuery(get_called_class());
-        return $query->notDeleted();
-    }
-
-    public static function findWithDeleted()
-    {
         return new CategoryQuery(get_called_class());
     }
 }

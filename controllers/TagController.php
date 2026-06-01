@@ -55,7 +55,7 @@ class TagController extends ApiController
 
     protected function findModel($id)
     {
-        $model = TagForm::find()->andWhere(['id' => $id])->notDeleted()->one();
+        $model = TagForm::find()->byId($id)->notDeleted()->one();
         if ($model !== null) {
             return $model;
         }

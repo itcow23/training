@@ -86,12 +86,6 @@ class PostCategory extends BasePostCategory
 
     public static function find()
     {
-        $query = new PostCategoryQuery(get_called_class());
-        return $query->notDeleted();
-    }
-
-    public static function findWithDeleted()
-    {
         return new PostCategoryQuery(get_called_class());
     }
 }
