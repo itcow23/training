@@ -81,4 +81,21 @@ class ProductQuery extends \yii\db\ActiveQuery
             $keyword,
         ]);
     }
+
+    public function notDeleted()
+    {
+        return $this->andWhere(['product.is_deleted' => 0]);
+    }
+
+    public function deleted()
+    {
+        return $this->andWhere(['product.is_deleted' => 1]);
+    }
+
+    public function withDeleted()
+    {
+        return $this->andWhere([]);
+    }
+
+
 }

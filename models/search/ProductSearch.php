@@ -47,7 +47,8 @@ class ProductSearch extends Product
     {
         $query = Product::find()
             ->withRelations()
-            ->withActiveCategory();
+            ->withActiveCategory()
+            ->notDeleted();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

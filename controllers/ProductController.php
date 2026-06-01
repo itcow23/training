@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-use app\models\Product;
+use app\models\forms\ProductForm;
 use app\models\search\ProductSearch;
 use yii\web\NotFoundHttpException;
 
@@ -21,7 +21,7 @@ class ProductController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Product(['scenario' => Product::SCENARIO_CREATE]);
+        $model = new ProductForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -34,7 +34,6 @@ class ProductController extends ApiController
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $model->scenario = Product::SCENARIO_UPDATE;
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -56,10 +55,10 @@ class ProductController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Product::find()->andWhere(['id' => $id])->withRelations()->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Product not found.');
+        $model = ProductForm::find()->byId($id)->notDeleted()->one();
+        if ($model !== null) {
+            return $model;
         }
-        return $model;
+        throw new NotFoundHttpException('Product not found.');
     }
 }

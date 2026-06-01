@@ -2,43 +2,15 @@
 
 namespace app\models;
 
-use app\behaviors\BypassSoftDeleteBehavior;
 use app\behaviors\MediaBehavior;
 use app\behaviors\SoftDeleteBehavior;
+use app\models\base\BaseProduct;
 use app\models\query\ProductQuery;
 use yii\behaviors\SluggableBehavior;
 use yii\behaviors\TimestampBehavior;
-use yii\web\UploadedFile;
 
-/**
- * This is the model class for table "product".
- *
- * @property int $id
- * @property int $category_id
- * @property string $name
- * @property float $price
- * @property int|null $status
- * @property string|null $description
- * @property int|null $discount
- * @property string|null $slug
- * @property string|null $created_at
- * @property string|null $updated_at
- *
- * @property CartItem[] $cartItems
- * @property Category $category
- * @property OrderItem[] $orderItems
- * @property PostProduct[] $postProducts
- */
-class Product extends \yii\db\ActiveRecord
+class Product extends BaseProduct
 {
-    const SCENARIO_CREATE = 'create';
-    const SCENARIO_UPDATE = 'update';
-    const SCENARIO_UPDATE_STATUS = 'update_status';
-    const SCENARIO_DELETE = 'delete';
-    public $image;
-    public $removed_image;
-    public static $bypassDeleteFilter = false;
-
     public function behaviors()
     {
         return [
@@ -62,61 +34,6 @@ class Product extends \yii\db\ActiveRecord
             'softDelete' => [
                 'class' => SoftDeleteBehavior::class,
             ],
-        ];
-    }
-
-    public function beforeValidate()
-    {
-        if (parent::beforeValidate()) {
-            $this->image = UploadedFile::getInstancesByName('image');
-            return true;
-        }
-        return false;
-    }
-
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        $scenarios[self::SCENARIO_CREATE] = ['category_id', 'name', 'price', 'description', 'discount', 'status', 'image'];
-        $scenarios[self::SCENARIO_UPDATE] = ['category_id', 'name', 'price', 'description', 'discount', 'status', 'image', 'removed_image'];
-        $scenarios[self::SCENARIO_UPDATE_STATUS] = ['status'];
-        $scenarios[self::SCENARIO_DELETE] = ['is_deleted', 'deleted_at'];
-        return $scenarios;
-    }
-
-    public function transactions()
-    {
-        return [
-            self::SCENARIO_CREATE => self::OP_INSERT,
-            self::SCENARIO_UPDATE => self::OP_UPDATE,
-            self::SCENARIO_UPDATE_STATUS => self::OP_UPDATE,
-            self::SCENARIO_DELETE => self::OP_UPDATE,
-        ];
-    }
-
-    public function rules()
-    {
-        return [
-            [['category_id', 'name', 'price'], 'required'],
-            [['category_id'], 'exist', 'targetClass' => Category::class, 'targetAttribute' => 'id'],
-            [['category_id', 'status', 'discount'], 'integer'],
-            [['status'], 'default', 'value' => 1],
-            [['status'], 'in', 'range' => [0, 1]],
-            [['name'], 'string', 'max' => 255],
-            [['price'], 'number', 'min' => 0],
-            [['description'], 'string'],
-            [['discount'], 'integer', 'min' => 0, 'max' => 100],
-
-            [
-                ['image'],
-                'file',
-                'skipOnEmpty' => true,
-                'maxFiles' => 10,
-                'extensions' => ['jpg', 'jpeg', 'png', 'webp'],
-                'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
-                'maxSize' => 5 * 1024 * 1024,
-            ],
-            [['removed_image'], 'each', 'rule' => ['integer']],
         ];
     }
 
@@ -151,14 +68,6 @@ class Product extends \yii\db\ActiveRecord
                 }, $model->posts);
             }
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'product';
     }
 
     /**
@@ -213,15 +122,6 @@ class Product extends \yii\db\ActiveRecord
     }
 
     public static function find()
-    {
-        $query = new ProductQuery(get_called_class());
-        if (!self::$bypassDeleteFilter) {
-            $query->andWhere(['product.is_deleted' => 0]);
-        }
-        return $query;
-    }
-
-    public static function findWithDeleted()
     {
         return new ProductQuery(get_called_class());
     }
