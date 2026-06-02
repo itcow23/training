@@ -35,7 +35,7 @@ class CategorySearch extends Category
     {
         $query = Category::find()
             ->notDeleted()
-            ->withRelations()
+            ->with('media')
             ->latest();
 
         $this->load($params, $formName);

@@ -16,16 +16,6 @@ class CategoryQuery extends ActiveQuery
         return $this->orderBy(['id' => SORT_DESC]);
     }
 
-    public function withRelations()
-    {
-        return $this->with([
-            'products.category',
-            'products.media',
-            'products.posts',
-            'media',
-        ]);
-    }
-
     public function byId($id)
     {
         return $this->andWhere(['id' => $id]);

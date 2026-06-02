@@ -69,19 +69,16 @@ class Category extends BaseCategory
             'id',
             'name',
             'status',
-            'products' => function ($model) {
-                return array_map(function ($product) {
-                    return [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'price' => $product->price,
-                        'status' => $product->status,
-                    ];
-                }, $model->products);
-            },
             'media' => function ($model) {
                 return array_column($model->media, 'filepath');
             },
+        ];
+    }
+
+    public function extraFields()
+    {
+        return [
+            'products',
         ];
     }
 
