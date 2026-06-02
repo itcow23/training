@@ -45,15 +45,6 @@ class ProductQuery extends \yii\db\ActiveQuery
         return $this->andWhere(['product.status' => 0]);
     }
 
-    public function withRelations()
-    {
-        return $this->with([
-            'category',
-            'media',
-            'posts',
-        ]);
-    }
-
      public function byId($id)
     {
         return $this->andWhere([

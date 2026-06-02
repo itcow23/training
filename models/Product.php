@@ -70,6 +70,13 @@ class Product extends BaseProduct
         ];
     }
 
+    public function extraFields()
+    {
+        return [
+            'posts',
+        ];
+    }
+
     /**
      * Gets query for [[CartItems]].
      *
