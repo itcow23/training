@@ -23,7 +23,7 @@ class OrderController extends ApiController
 
     public function actionFilter($status)
     {
-        $query = Order::find()->filterByStatus((int) $status)->withRelations()->notDeleted();
+        $query = Order::find()->filterByStatus((int) $status)->with('membershipLevel')->notDeleted();
 
         return new ActiveDataProvider([
             'query' => $query,
@@ -90,7 +90,7 @@ class OrderController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Order::find()->andWhere(['id' => $id])->withRelations()->notDeleted()->one();
+        $model = Order::find()->andWhere(['id' => $id])->with('membershipLevel')->notDeleted()->one();
         if ($model === null) {
             throw new NotFoundHttpException('Order not found.');
         }

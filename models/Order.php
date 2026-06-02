@@ -56,18 +56,13 @@ class Order extends BaseOrder
             'pay_method',
             'status',
             'created_at',
-            'items' => function ($model) {
-                return array_map(function ($orderItem) {
-                    return [
-                        'product_id' => $orderItem->product_id,
-                        'product_name' => $orderItem->product_name ?? ($orderItem->product->name ?? ('Sản phẩm ID: ' . $orderItem->product_id)),
-                        'discount' => isset($orderItem->product) ? ($orderItem->product->discount . '%') : '0%',
-                        'unit_price' => (float)$orderItem->unit_price,
-                        'quantity' => (int)$orderItem->quantity,
-                        'total_price' => (float)$orderItem->total_price
-                    ];
-                }, $model->orderItems);
-            }
+        ];
+    }
+
+    public function extraFields()
+    {
+        return [
+          'items'
         ];
     }
 

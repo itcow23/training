@@ -44,7 +44,7 @@ class OrderSearch extends Order
      */
     public function search($params, $formName = null)
     {
-        $query = Order::find()->withRelations()->notDeleted();
+        $query = Order::find()->with('membershipLevel')->notDeleted();
 
         // add conditions that should always apply here
 

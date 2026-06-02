@@ -71,14 +71,6 @@ class OrderQuery extends \yii\db\ActiveQuery
         };
     }
 
-    public function withRelations()
-    {
-        return $this->with([
-            'orderItems.product',
-            'membershipLevel',
-        ]);
-    }
-
     public function keyword(?string $keyword)
     {
         return $this->andFilterWhere([
