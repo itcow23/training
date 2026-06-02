@@ -2,42 +2,24 @@
 
 namespace app\models;
 
-use Yii;
+use app\models\base\BaseOrder;
 use yii\behaviors\TimestampBehavior;
 use app\models\query\OrderQuery;
+use Yii;
 
-/**
- * This is the model class for table "orders".
- *
- * @property int $id
- * @property string $order_code
- * @property int $account_id
- * @property int|null $membership_level_id
- * @property float|null $subtotal
- * @property float|null $discount
- * @property float|null $shipping_fee
- * @property float|null $final_total
- * @property int|null $pay_method
- * @property int|null $status
- * @property string|null $shipping_name
- * @property string|null $shipping_email
- * @property string|null $shipping_phone
- * @property string|null $shipping_address
- * @property string|null $created_at
- * @property string|null $updated_at
- *
- * @property Account $account
- * @property CouponUsage[] $couponUsages
- * @property OrderItem[] $orderItems
- */
-class Order extends \yii\db\ActiveRecord
+class Order extends BaseOrder
 {
+
     public const STATUS_PENDING = 1;
     public const STATUS_CONFIRM = 2;
     public const STATUS_SHIPPING = 3;
     public const STATUS_COMPLETED = 4;
     public const STATUS_CANCEL = 0;
 
+    public const PAY_METHOD_COD = 1;
+    public const PAY_METHOD_BANK_TRANSFER = 2;
+    public const PAY_METHOD_CREDIT_CARD = 3;
+    
     public function behaviors()
     {
         return [
@@ -89,30 +71,6 @@ class Order extends \yii\db\ActiveRecord
         ];
     }
 
-    public function generateOrderCode(int $attempts = 0): void
-    {
-        if ($attempts >= 10) {
-            throw new \RuntimeException('Cannot generate a unique order code after 10 attempts.');
-        }
-
-        $date = date('YmdHi');
-        $random = strtoupper(Yii::$app->security->generateRandomString(4));
-        $this->order_code = "ORD{$date}{$random}";
-
-        if (self::find()->andWhere(['order_code' => $this->order_code])->exists()) {
-            $this->generateOrderCode($attempts + 1);
-        }
-    }
-
-    public function beforeSave($insert)
-    {
-        if ($insert && empty($this->order_code)) {
-            $this->generateOrderCode();
-        }
-        return parent::beforeSave($insert);
-    }
-
-
     /**
      * {@inheritdoc}
      */
@@ -163,11 +121,42 @@ class Order extends \yii\db\ActiveRecord
 
     public static function find()
     {
-        return (new OrderQuery(get_called_class()))->andWhere(['orders.is_deleted' => 0]);
+        return (new OrderQuery(get_called_class()));
     }
 
-    public static function findWithDeleted()
+    public function generateOrderCode(int $attempts = 0): void
     {
-        return new OrderQuery(get_called_class());
+        if ($attempts >= 10) {
+            throw new \RuntimeException('Cannot generate a unique order code after 10 attempts.');
+        }
+
+        $date = date('YmdHi');
+        $random = strtoupper(Yii::$app->security->generateRandomString(4));
+        $this->order_code = "ORD{$date}{$random}";
+
+        if (self::find()->andWhere(['order_code' => $this->order_code])->exists()) {
+            $this->generateOrderCode($attempts + 1);
+        }
+    }
+
+    public function validateStatusTransition(int $newStatus): bool
+    {
+        $allowedTransitions = [
+            self::STATUS_PENDING => [
+                self::STATUS_CONFIRM,
+                self::STATUS_CANCEL
+            ],
+            self::STATUS_CONFIRM => [
+                self::STATUS_SHIPPING,
+                self::STATUS_CANCEL
+            ],
+            self::STATUS_SHIPPING => [
+                self::STATUS_COMPLETED
+            ],
+            self::STATUS_COMPLETED => [],
+            self::STATUS_CANCEL => [],
+        ];
+
+        return in_array($newStatus, $allowedTransitions[(int)$this->status] ?? []);
     }
 }

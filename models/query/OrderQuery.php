@@ -75,6 +75,7 @@ class OrderQuery extends \yii\db\ActiveQuery
     {
         return $this->with([
             'orderItems.product',
+            'membershipLevel',
         ]);
     }
 
@@ -85,6 +86,43 @@ class OrderQuery extends \yii\db\ActiveQuery
             'order_code',
             $keyword,
         ]);
+    }
+
+    public function withDeleted()
+    {
+        if (is_array($this->where)) {
+            $this->where = $this->removeIsDeletedCondition($this->where);
+        }
+        return $this;
+    }
+
+    private function removeIsDeletedCondition($where)
+    {
+        if (!is_array($where)) {
+            return $where;
+        }
+
+        if (isset($where['orders.is_deleted'])) {
+            unset($where['orders.is_deleted']);
+        }
+        if (isset($where['is_deleted'])) {
+            unset($where['is_deleted']);
+        }
+
+        foreach ($where as $key => $value) {
+            if (is_array($value)) {
+                $where[$key] = $this->removeIsDeletedCondition($value);
+                if (is_array($where[$key]) && count($where[$key]) === 0) {
+                    unset($where[$key]);
+                }
+            }
+        }
+
+        if (count($where) === 1 && in_array(strtolower(reset($where)), ['and', 'or'])) {
+            return [];
+        }
+
+        return $where;
     }
 }
 

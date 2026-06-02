@@ -2,29 +2,12 @@
 
 namespace app\models;
 
-use Override;
+use app\models\base\BaseOrderItem;
 use yii\behaviors\TimestampBehavior;
 
-/**
- * This is the model class for table "order_items".
-
- * @property int $id
- * @property int $order_id
- * @property int $product_id
- * @property int $quantity
- * @property float $unit_price
- * @property float $total_price
- * @property string|null $created_at
- * @property string|null $updated_at
- *
- * @property Order $order
- * @property Product $product
- */
-class OrderItem extends \yii\db\ActiveRecord
+class OrderItem extends BaseOrderItem
 {
 
-
-    #[Override]
     public function behaviors()
     {
         return[
@@ -34,47 +17,6 @@ class OrderItem extends \yii\db\ActiveRecord
                    return date('Y-m-d H:i:s');
                 }
             ]
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function tableName()
-    {
-        return 'order_items';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['created_at', 'updated_at'], 'default', 'value' => null],
-            [['order_id', 'product_id', 'quantity', 'unit_price', 'total_price'], 'required'],
-            [['product_id', 'quantity'], 'integer'],
-            [['unit_price', 'total_price'], 'number'],
-            [['created_at', 'updated_at'], 'safe'],
-            [['order_id'], 'integer'],
-            [['order_id'], 'exist', 'skipOnError' => true, 'targetClass' => Order::class, 'targetAttribute' => ['order_id' => 'id']],
-            [['product_id'], 'exist', 'skipOnError' => true, 'targetClass' => Product::class, 'targetAttribute' => ['product_id' => 'id']],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'order_id' => 'Order ID',
-            'product_id' => 'Product ID',
-            'quantity' => 'Quantity',
-            'total_price' => 'Total Price',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
         ];
     }
 

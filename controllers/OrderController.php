@@ -6,7 +6,6 @@ use app\models\forms\OrderForm;
 use app\models\Order;
 use app\models\search\OrderSearch;
 use yii\data\ActiveDataProvider;
-use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 
 class OrderController extends ApiController
@@ -41,34 +40,39 @@ class OrderController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Order();
-        $form = new OrderForm(['scenario' => OrderForm::SCENARIO_CREATE]);
+        $form = new OrderForm();
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($form->save($model)) {
-                return $this->findModel($model->id);
-            }
-            $this->response->statusCode = 422;
-            return array_merge($form->getErrors(), $model->getErrors());
+        if ($this->request->isPost && $form->load($this->request->post(), '') && $form->save()) {
+            return $this->findModel($form->id);
         }
 
-        throw new BadRequestHttpException('POST request required');
+        $this->response->statusCode = 422;
+        return $form->getErrors();
     }
 
     public function actionUpdateStatus($id)
     {
         $model = $this->findModel($id);
-        $form = new OrderForm(['scenario' => OrderForm::SCENARIO_UPDATE]);
+        $newStatus = (int)$this->request->post('status');
 
-        if ($this->request->isPost && $form->load($this->request->post(), '')) {
-            if ($form->save($model)) {
-                return $this->findModel($model->id);
-            }
+        if (!$model->validateStatusTransition($newStatus)) {
             $this->response->statusCode = 422;
-            return array_merge($form->getErrors(), $model->getErrors());
+            return [
+                'success' => false,
+                'message' => 'Transition not allowed.',
+            ];
         }
 
-        throw new BadRequestHttpException('POST request required');
+        $model->status = $newStatus;
+        if (!$model->save()) {
+            $this->response->statusCode = 422;
+            return $model->getErrors();
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Status updated successfully.',
+        ];
     }
 
     public function actionDelete($id)
@@ -78,7 +82,10 @@ class OrderController extends ApiController
             $this->response->statusCode = 422;
             return $model->getErrors();
         }
-        return null;
+        return [
+            'success' => true,
+            'message' => 'Order deleted successfully.',
+        ];
     }
 
     protected function findModel($id)
