@@ -46,7 +46,7 @@ class ProductSearch extends Product
     public function search($params, $formName = null)
     {
         $query = Product::find()
-            ->with(['category',' meida'])
+            ->with(['category', 'media'])
             ->notDeleted();
 
         $dataProvider = new ActiveDataProvider([
