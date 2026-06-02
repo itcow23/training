@@ -133,7 +133,6 @@ class PostForm extends Post
         $existingIds = $modelClass::find()
             ->select([$fkTargetColumn])
             ->where(['post_id' => $this->id])
-            ->notDeleted()
             ->column();
 
         $toDeleteIds = array_diff($existingIds, $newIds);
