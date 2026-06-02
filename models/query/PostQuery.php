@@ -32,16 +32,6 @@ class PostQuery extends \yii\db\ActiveQuery
         return parent::one($db);
     }
 
-    public function withRelations()
-    {
-        return $this->with([
-            'comments',
-            'media',
-            'tags',
-            'products',
-        ]);
-    }
-
     public function latest()
     {
         return $this->orderBy([

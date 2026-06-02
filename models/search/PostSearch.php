@@ -43,7 +43,7 @@ class PostSearch extends Post
      */
     public function search($params, $formName = null)
     {
-        $query = Post::find()->notDeleted()->withRelations();
+        $query = Post::find()->notDeleted()->with('media');
 
 
 

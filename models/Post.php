@@ -61,26 +61,15 @@ class Post extends BasePost
                         'path' => $media->filepath
                     ];
                 }, $model->media);
-            },
-            'tags' => function ($model) {
-                return array_map(function ($tag) {
-                    return [
-                        'id' => $tag->id,
-                        'name' => $tag->name
-                    ];
-                }, $model->tags);
-            },
-            'products' => function ($model) {
-                return array_map(function ($product) {
-                    return [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'price' => (float)$product->price,
-                        'discount' => (int)$product->discount,
-                        'slug' => $product->slug,
-                    ];
-                }, $model->products);
-            },
+            }
+        ];
+    }
+
+    public function extraFields()
+    {
+        return [
+            'tags',
+            'products',
         ];
     }
     /**
