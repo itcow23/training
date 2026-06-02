@@ -44,7 +44,7 @@ class OrderSearch extends Order
      */
     public function search($params, $formName = null)
     {
-        $query = Order::find()->withRelations();
+        $query = Order::find()->withRelations()->notDeleted();
 
         // add conditions that should always apply here
 

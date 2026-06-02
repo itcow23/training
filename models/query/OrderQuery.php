@@ -88,42 +88,20 @@ class OrderQuery extends \yii\db\ActiveQuery
         ]);
     }
 
-    public function withDeleted()
-    {
-        if (is_array($this->where)) {
-            $this->where = $this->removeIsDeletedCondition($this->where);
-        }
-        return $this;
-    }
+   public function withDeleted()
+   {
+       return $this;
+   }
 
-    private function removeIsDeletedCondition($where)
-    {
-        if (!is_array($where)) {
-            return $where;
-        }
+   public function notDeleted()
+   {
+       return $this->andWhere(['is_deleted' => 0]);
+   }
+   public function deleted()
+   {
+       return $this->andWhere(['is_deleted' => 1]);
+   }
 
-        if (isset($where['orders.is_deleted'])) {
-            unset($where['orders.is_deleted']);
-        }
-        if (isset($where['is_deleted'])) {
-            unset($where['is_deleted']);
-        }
-
-        foreach ($where as $key => $value) {
-            if (is_array($value)) {
-                $where[$key] = $this->removeIsDeletedCondition($value);
-                if (is_array($where[$key]) && count($where[$key]) === 0) {
-                    unset($where[$key]);
-                }
-            }
-        }
-
-        if (count($where) === 1 && in_array(strtolower(reset($where)), ['and', 'or'])) {
-            return [];
-        }
-
-        return $where;
-    }
 }
 
 
