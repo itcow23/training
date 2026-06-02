@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Comment;
+use app\models\forms\CommentForm;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
@@ -17,7 +18,7 @@ class CommentController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Comment(['scenario' => Comment::SCENARIO_CREATE]);
+        $model = new CommentForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -29,8 +30,10 @@ class CommentController extends ApiController
 
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
-        $model->scenario = Comment::SCENARIO_UPDATE;
+        $model = CommentForm::findOne($id);
+        if ($model === null) {
+            throw new NotFoundHttpException('Comment not found.');
+        }
 
         $accountId = $this->request->post('account_id');
         if ((int)$model->account_id !== (int)$accountId) {
@@ -64,10 +67,10 @@ class CommentController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Comment::find()->andWhere(['id' => $id])->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Comment not found.');
+        $model = CommentForm::find()->andWhere(['id' => $id])->one();
+        if ($model !== null) {
+            return $model;
         }
-        return $model;
+        throw new NotFoundHttpException('Comment not found.');
     }
 }

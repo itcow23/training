@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Rating;
+use app\models\forms\RatingForm;
 use yii\web\NotFoundHttpException;
 
 class RatingController extends ApiController
@@ -19,7 +20,7 @@ class RatingController extends ApiController
 
     public function actionCreate()
     {
-        $model = new Rating(['scenario' => Rating::SCENARIO_CREATE]);
+        $model = new RatingForm();
 
         if ($model->load($this->request->post(), '') && $model->save()) {
             return $this->findModel($model->id);
@@ -31,10 +32,10 @@ class RatingController extends ApiController
 
     protected function findModel($id)
     {
-        $model = Rating::find()->andWhere(['id' => $id])->one();
-        if ($model === null) {
-            throw new NotFoundHttpException('Rating not found.');
+        $model = RatingForm::find()->andWhere(['id' => $id])->one();
+        if ($model !== null) {
+            return $model;
         }
-        return $model;
+        throw new NotFoundHttpException('Rating not found.');
     }
-}
+}  
