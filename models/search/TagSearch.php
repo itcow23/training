@@ -42,7 +42,7 @@ class TagSearch extends Tag
      */
     public function search($params, $formName = null)
     {
-        $query = Tag::find();
+        $query = Tag::find()->notDeleted();
 
         // add conditions that should always apply here
 

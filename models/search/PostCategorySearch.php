@@ -46,7 +46,7 @@ class PostCategorySearch extends PostCategory
     public function search($params, $formName = null)
     {
 
-        $query = PostCategory::find()->withRelations();
+        $query = PostCategory::find()->notDeleted()->withRelations();
 
         // add conditions that should always apply here
 

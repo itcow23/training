@@ -34,6 +34,7 @@ class CategorySearch extends Category
     public function search($params, $formName = null)
     {
         $query = Category::find()
+            ->notDeleted()
             ->withRelations()
             ->latest();
 
