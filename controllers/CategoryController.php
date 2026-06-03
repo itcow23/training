@@ -4,23 +4,42 @@ namespace app\controllers;
 
 use app\models\forms\CategoryForm;
 use app\models\search\CategorySearch;
+use Yii;
 use yii\web\NotFoundHttpException;
 
 class CategoryController extends ApiController
 {
+    protected const PERMISSION_VIEW = 'category.view';
+    protected const PERMISSION_CREATE = 'category.create';
+    protected const PERMISSION_UPDATE = 'category.update';
+    protected const PERMISSION_DELETE = 'category.delete';
+
+    protected function optionAuthActions()
+    {
+        return ['index', 'view'];
+    }
+
     public function actionIndex()
     {
+        if($this->request->get('show_deleted'))
+        {
+            $this->requirePermission(self::PERMISSION_VIEW);
+        }
         $searchModel = new CategorySearch();
         return $searchModel->search($this->request->queryParams, '');
     }
 
     public function actionView($id)
     {
+        $this->requirePermission(self::PERMISSION_VIEW);
         return $this->findModel($id);
     }
 
     public function actionCreate()
     {
+
+        $this->requirePermission(self::PERMISSION_CREATE);
+
         $model = new CategoryForm();
 
         $model->load($this->request->post(), '');
@@ -39,6 +58,7 @@ class CategoryController extends ApiController
 
     public function actionUpdate($id)
     {
+        $this->requirePermission(self::PERMISSION_UPDATE);
         $model = $this->findModel($id);
 
         $model->load($this->request->post(), '');
@@ -57,6 +77,8 @@ class CategoryController extends ApiController
 
     public function actionDelete($id)
     {
+        $this->requirePermission(self::PERMISSION_DELETE);
+
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
             $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa danh mục này.';
@@ -65,7 +87,7 @@ class CategoryController extends ApiController
         return $this->success(null, 'Deleted successfully');
     }
 
-   protected function findModel($id)
+    protected function findModel($id)
     {
         $model = CategoryForm::find()->notDeleted()->byId($id)->one();
         if ($model !== null) {

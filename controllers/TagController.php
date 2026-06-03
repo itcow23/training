@@ -8,6 +8,12 @@ use yii\web\NotFoundHttpException;
 
 class TagController extends ApiController
 {
+    protected const PERMISSION_TAG = 'tag.manage';
+    protected function optionAuthActions()
+    {
+        return ['index', 'view'];
+    }
+
     public function actionIndex()
     {
         $searchModel = new TagSearch();
@@ -21,6 +27,8 @@ class TagController extends ApiController
 
     public function actionCreate()
     {
+        $this->requirePermission(self::PERMISSION_TAG);
+
         $model = new TagForm();
 
         $model->load($this->request->post(), '');
@@ -34,6 +42,8 @@ class TagController extends ApiController
 
     public function actionUpdate($id)
     {
+        $this->requirePermission(self::PERMISSION_TAG);
+
         $model = $this->findModel($id);
 
         $model->load($this->request->post(), '');
@@ -47,6 +57,8 @@ class TagController extends ApiController
 
     public function actionDelete($id)
     {
+        $this->requirePermission(self::PERMISSION_TAG);
+
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
             $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa thẻ này.';

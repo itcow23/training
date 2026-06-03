@@ -4,10 +4,23 @@ namespace app\controllers;
 
 use app\models\forms\PostForm;
 use app\models\search\PostSearch;
+use Yii;
 use yii\web\NotFoundHttpException;
 
 class PostController extends ApiController
 {
+    protected const PERMISSION_VIEW = 'post.view';
+    protected const PERMISSION_CREATE = 'post.create';
+    protected const PERMISSION_UPDATE = 'post.update';
+    protected const PERMISSION_DELETE = 'post.delete';
+    protected const PERMISSION_PUBLISH = 'post.publish';
+    protected const PERMISSION_UPDATE_OWN = 'post.update_own';
+
+    protected function optionAuthActions()
+    {
+        return ['index', 'view'];
+    }
+
     public function actionIndex()
     {
         $searchModel = new PostSearch();
@@ -21,6 +34,8 @@ class PostController extends ApiController
 
     public function actionCreate()
     {
+        $this->requirePermission(self::PERMISSION_CREATE);
+
         $model = new PostForm();
 
         $model->load($this->request->post(), '');
@@ -40,6 +55,10 @@ class PostController extends ApiController
     {
         $model = $this->findModel($id);
 
+        if (!Yii::$app->user->can('post.update') && !Yii::$app->user->can('post.update.own', ['model' => $model])) {
+            throw new \yii\web\ForbiddenHttpException('You do not have permission to edit this post.');
+        }
+
         $model->load($this->request->post(), '');
 
         if ($model->save()) {
@@ -55,6 +74,8 @@ class PostController extends ApiController
 
     public function actionDelete($id)
     {
+        $this->requirePermission(self::PERMISSION_DELETE);
+
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
             $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa bài viết này.';

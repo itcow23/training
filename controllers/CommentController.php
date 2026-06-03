@@ -4,11 +4,23 @@ namespace app\controllers;
 
 use app\models\Comment;
 use app\models\forms\CommentForm;
+use Yii;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 class CommentController extends ApiController
 {
+    protected const PERMISSION_VIEW = 'comment.view';
+    protected const PERMISSION_CREATE = 'comment.create';
+    protected const PERMISSION_UPDATE = 'comment.update';
+    protected const PERMISSION_DELETE = 'comment.delete';
+    protected const PERMISSION_UPDATE_OWN = 'comment.update_own';
+
+    protected function optionAuthActions()
+    {
+        return ['index'];
+    }
+
     public function actionIndex()
     {
         return [
@@ -36,6 +48,10 @@ class CommentController extends ApiController
             throw new NotFoundHttpException('Comment not found.');
         }
 
+        if (!Yii::$app->user->can('comment.moderate') && (int)$model->account_id !== (int)Yii::$app->user->id) {
+            throw new ForbiddenHttpException('You do not have permission to edit this comment.');
+        }
+
         $accountId = $this->request->post('account_id');
         if ((int)$model->account_id !== (int)$accountId) {
             throw new ForbiddenHttpException('You do not have permission to edit this comment.');
@@ -53,6 +69,10 @@ class CommentController extends ApiController
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
+
+        if (!Yii::$app->user->can('comment.moderate') && (int)$model->account_id !== (int)Yii::$app->user->id) {
+            throw new ForbiddenHttpException('You do not have permission to delete this comment.');
+        }
 
         $accountId = $this->request->post('account_id');
         if ((int)$model->account_id !== (int)$accountId) {

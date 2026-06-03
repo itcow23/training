@@ -8,6 +8,14 @@ use yii\web\NotFoundHttpException;
 
 class PostCategoryController extends ApiController
 {
+    protected const PERMISSION= 'post_category.manage';
+
+    protected function optionAuthActions()
+    {
+        return ['index', 'view'];
+    }
+
+
     public function actionIndex()
     {
         $searchModel = new PostCategorySearch();
@@ -21,6 +29,8 @@ class PostCategoryController extends ApiController
 
     public function actionCreate()
     {
+        $this->requirePermission(self::PERMISSION);
+
         $model = new PostCategoryForm();
 
         $model->load($this->request->post(), '');
@@ -34,6 +44,8 @@ class PostCategoryController extends ApiController
 
     public function actionUpdate($id)
     {
+        $this->requirePermission(self::PERMISSION);
+
         $model = $this->findModel($id);
 
         $model->load($this->request->post(), '');
@@ -47,6 +59,8 @@ class PostCategoryController extends ApiController
 
     public function actionDelete($id)
     {
+        $this->requirePermission(self::PERMISSION);
+
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
             $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa danh mục bài viết này.';

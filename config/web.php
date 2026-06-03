@@ -84,7 +84,7 @@ $config = [
             'class' => \yii\caching\FileCache::class,
         ],
         'user' => [
-            'identityClass' => \app\models\User::class,
+            'identityClass' => \app\models\Account::class,
             'enableAutoLogin' => true,
         ],
         'errorHandler' => [
@@ -101,7 +101,9 @@ $config = [
             ],
         ],
         'db' => $db,
-
+        'authManager' => [
+            'class' => \yii\rbac\DbManager::class,
+        ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,

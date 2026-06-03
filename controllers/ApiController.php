@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\Account;
+use Yii;
 use yii\rest\Controller;
 
 class ApiController extends Controller
@@ -20,6 +22,69 @@ class ApiController extends Controller
         'collectionEnvelope' => 'items',
     ];
 
+
+    protected function optionAuthActions()
+    {
+        return [];
+    }
+
+    public function beforeAction($action)
+    {
+        $accountId = Yii::$app->request->get('account_id');
+        $optionsAuthActions = $this->optionAuthActions();
+
+        if(in_array($action->id, $optionsAuthActions)) {
+            if($accountId){
+                $account = Account::findIdentity($accountId);
+                if($account){
+                    Yii::$app->user->login($account);
+                }
+            }
+            return parent::beforeAction($action);
+        }
+
+        if (!$accountId) {
+
+            Yii::$app->response->statusCode = 401;
+            Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+            Yii::$app->response->data = [
+                'success' => false,
+                'message' => 'account_id is required',
+            ];
+
+            Yii::$app->response->send();
+
+            return false;
+        }
+
+        $account = Account::findIdentity($accountId);
+        if (!$account) {
+            Yii::$app->response->statusCode = 401;
+            Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+            Yii::$app->response->data = [
+                'success' => false,
+                'message' => 'Invalid account_id',
+            ];
+
+            Yii::$app->response->send();
+
+            return false;
+        }
+
+        Yii::$app->user->login($account);
+
+        return parent::beforeAction($action);
+    }
+
+    protected function requirePermission(string $permissionName): void
+    {
+        if (!Yii::$app->user->can($permissionName)) {
+            throw new \yii\web\ForbiddenHttpException(
+                'You do not have permission to perform this action.'
+            );
+        }
+    }
+
     protected function verbs()
     {
         return [
@@ -27,7 +92,7 @@ class ApiController extends Controller
             'view' => ['GET', 'HEAD'],
             'create' => ['POST'],
             'update' => ['PUT', 'PATCH', 'POST'],
-            'delete' => ['DELETE','POST'],
+            'delete' => ['DELETE', 'POST'],
         ];
     }
 

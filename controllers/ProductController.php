@@ -8,6 +8,16 @@ use yii\web\NotFoundHttpException;
 
 class ProductController extends ApiController
 {
+    protected const PERMISSION_VIEW = 'product.view';
+    protected const PERMISSION_CREATE = 'product.create';
+    protected const PERMISSION_UPDATE = 'product.update';
+    protected const PERMISSION_DELETE = 'product.delete';
+
+    protected function optionAuthActions()
+    {
+        return ['index', 'view'];
+    }
+
     public function actionIndex()
     {
         $searchModel = new ProductSearch();
@@ -21,6 +31,8 @@ class ProductController extends ApiController
 
     public function actionCreate()
     {
+        $this->requirePermission(self::PERMISSION_CREATE);
+
         $model = new ProductForm();
 
         $model->load($this->request->post(), '');
@@ -38,6 +50,8 @@ class ProductController extends ApiController
 
     public function actionUpdate($id)
     {
+        $this->requirePermission(self::PERMISSION_UPDATE);
+
         $model = $this->findModel($id);
 
         $model->load($this->request->post(), '');
@@ -55,6 +69,7 @@ class ProductController extends ApiController
 
     public function actionDelete($id)
     {
+        $this->requirePermission(self::PERMISSION_DELETE);
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
             $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa sản phẩm này.';
