@@ -9,6 +9,11 @@ $config = [
     'bootstrap' => ['log'],
     'timezone' => 'Asia/Ho_Chi_Minh',
     'container' => [
+        'definitions' => [
+            \yii\rest\Serializer::class => [
+                'collectionEnvelope' => 'items',
+            ],
+        ],
         'singletons' => [
             \yii\mail\MailerInterface::class => [
                 'class' => \yii\symfonymailer\Mailer::class,
@@ -34,58 +39,44 @@ $config = [
             'on beforeSend' => function ($event) {
                 $response = $event->sender;
                 if ($response->format === \yii\web\Response::FORMAT_JSON && $response->statusCode !== 204) {
-                    $isSuccess = $response->isSuccessful;
 
                     if (is_array($response->data) && isset($response->data['success'])) {
                         return;
                     }
 
-                    $actionName = '';
-                    if (\Yii::$app->controller && \Yii::$app->controller->action) {
-                        $actionName = ucwords(str_replace('-', ' ', \Yii::$app->controller->action->id));
-                    }
+                    $isSuccess = $response->isSuccessful;
 
-                    $message = $isSuccess ? ($actionName ? "$actionName success" : 'Success') : ($response->statusText ?: 'Error');
-                    $errors = [];
-                    $data = [];
-
-                    if (!$isSuccess) {
-                        if (is_string($response->data) && !empty($response->data)) {
-                            $message = $response->data;
-                        } elseif (is_array($response->data)) {
-                            if (isset($response->data['message'])) {
-                                $message = $response->data['message'];
-                            }
-                            if (isset($response->data['errors'])) {
-                                $errors = $response->data['errors'];
-                            } elseif (!isset($response->data['status']) || !is_int($response->data['status'])) {
-                                $errors = $response->data;
-                                $message = 'Validation failed.';
-                            }
-                        }
+                    if ($isSuccess) {
+                        $response->data = [
+                            'success' => true,
+                            'message' => 'Success',
+                            'data' => $response->data,
+                        ];
                     } else {
-                        $data = $response->data;
-                        $headers = $response->headers;
-                        if ($headers->has('X-Pagination-Total-Count')) {
-                            $data = [
-                                'items' => $response->data,
-                                'pagination' => [
-                                    'totalCount' => (int)$headers->get('X-Pagination-Total-Count'),
-                                    'pageCount' => (int)$headers->get('X-Pagination-Page-Count'),
-                                    'currentPage' => (int)$headers->get('X-Pagination-Current-Page'),
-                                    'perPage' => (int)$headers->get('X-Pagination-Per-Page'),
-                                ],
-                            ];
-                        } else {
-                            $data = $response->data;
-                        }
-                    }
 
-                    $response->data = [
-                        'success' => $isSuccess,
-                        'message' => $message,
-                        $isSuccess ? 'data' : 'errors' => $isSuccess ? $data : $errors,
-                    ];
+                        $rawErrors = $response->data;
+
+                        $message = (is_array($rawErrors) && isset($rawErrors['message']) && is_string($rawErrors['message']))
+                            ? $rawErrors['message']
+                            : ($response->statusText ?: 'Error');
+
+                        $formattedData = [
+                            'success' => false,
+                            'message' => $message,
+                        ];
+
+                        if ($response->statusCode === 422) {
+                            if (!empty($rawErrors)) {
+                                $formattedData['errors'] = $rawErrors;
+                            }
+                        } elseif ($response->statusCode >= 500 && defined('YII_DEBUG') && YII_DEBUG) {
+                            if (!empty($rawErrors)) {
+                                $formattedData['errors'] = $rawErrors;
+                            }
+                        }
+
+                        $response->data = $formattedData;
+                    }
                 }
             },
         ],

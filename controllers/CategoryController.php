@@ -23,50 +23,46 @@ class CategoryController extends ApiController
     {
         $model = new CategoryForm();
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
             $category = $this->findModel($model->id);
             $uploadErrors = \Yii::$app->media->getErrors();
             if (!empty($uploadErrors)) {
-                return [
-                    'category' => $category,
-                    'upload_errors' => $uploadErrors,
-                ];
+                return $this->error('Category created but image upload failed.', self::STATUS_BAD_REQUEST, $uploadErrors);
             }
-            return $category;
+            return $this->success($category, 'Category created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
             $category = $this->findModel($model->id);
             $uploadErrors = \Yii::$app->media->getErrors();
             if (!empty($uploadErrors)) {
-                return [
-                    'category' => $category,
-                    'upload_errors' => $uploadErrors,
-                ];
+                return $this->error('Category updated but image upload failed.', self::STATUS_BAD_REQUEST, $uploadErrors);
             }
-            return $category;
+            return $this->success($category, 'Category updated successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa danh mục này.';
+            return $this->error($error, self::STATUS_BAD_REQUEST);
         }
-        return null;
+        return $this->success(null, 'Deleted successfully');
     }
 
    protected function findModel($id)

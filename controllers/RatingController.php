@@ -22,12 +22,13 @@ class RatingController extends ApiController
     {
         $model = new RatingForm();
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            return $this->success($this->findModel($model->id), 'Rating created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     protected function findModel($id)

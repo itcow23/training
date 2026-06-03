@@ -20,12 +20,13 @@ class CommentController extends ApiController
     {
         $model = new CommentForm();
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            return $this->success($this->findModel($model->id), 'Comment created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionUpdate($id)
@@ -40,12 +41,13 @@ class CommentController extends ApiController
             throw new ForbiddenHttpException('You do not have permission to edit this comment.');
         }
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            return $this->success($this->findModel($model->id), 'Comment updated successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionDelete($id)
@@ -58,11 +60,11 @@ class CommentController extends ApiController
         }
 
         if (!$model->softDelete()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa bình luận này.';
+            return $this->error($error, self::STATUS_BAD_REQUEST);
         }
 
-        return null;
+        return $this->success(null, 'Deleted successfully');
     }
 
     protected function findModel($id)

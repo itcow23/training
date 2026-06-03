@@ -23,34 +23,44 @@ class ProductController extends ApiController
     {
         $model = new ProductForm();
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            $uploadErrors = \Yii::$app->media->getErrors();
+            if (!empty($uploadErrors)) {
+                return $this->error('Product created but image upload failed.', self::STATUS_BAD_REQUEST, $uploadErrors);
+            }
+            return $this->success($this->findModel($model->id), 'Product created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            $uploadErrors = \Yii::$app->media->getErrors();
+            if (!empty($uploadErrors)) {
+                return $this->error('Product updated but image upload failed.', self::STATUS_BAD_REQUEST, $uploadErrors);
+            }
+            return $this->success($this->findModel($model->id), 'Product updated successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa sản phẩm này.';
+            return $this->error($error, self::STATUS_BAD_REQUEST);
         }
-        return null;
+        return $this->success(null, 'Deleted successfully');
     }
 
     protected function findModel($id)

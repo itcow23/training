@@ -23,34 +23,44 @@ class PostController extends ApiController
     {
         $model = new PostForm();
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            $uploadErrors = \Yii::$app->media->getErrors();
+            if (!empty($uploadErrors)) {
+                return $this->error('Post created but image upload failed.', self::STATUS_BAD_REQUEST, $uploadErrors);
+            }
+            return $this->success($this->findModel($model->id), 'Post created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            $uploadErrors = \Yii::$app->media->getErrors();
+            if (!empty($uploadErrors)) {
+                return $this->error('Post updated but image upload failed.', self::STATUS_BAD_REQUEST, $uploadErrors);
+            }
+            return $this->success($this->findModel($model->id), 'Post updated successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa bài viết này.';
+            return $this->error($error, self::STATUS_BAD_REQUEST);
         }
-        return null;
+        return $this->success(null, 'Deleted successfully');
     }
 
     protected function findModel($id)

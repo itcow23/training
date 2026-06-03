@@ -42,12 +42,13 @@ class OrderController extends ApiController
     {
         $form = new OrderForm();
 
-        if ($this->request->isPost && $form->load($this->request->post(), '') && $form->save()) {
-            return $this->findModel($form->id);
+        $form->load($this->request->post(), '');
+
+        if ($form->save()) {
+            return $this->success($this->findModel($form->id), 'Order created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $form->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $form);
     }
 
     public function actionUpdateStatus($id)
@@ -56,36 +57,25 @@ class OrderController extends ApiController
         $newStatus = (int)$this->request->post('status');
 
         if (!$model->validateStatusTransition($newStatus)) {
-            $this->response->statusCode = 422;
-            return [
-                'success' => false,
-                'message' => 'Transition not allowed.',
-            ];
+            return $this->error('Transition not allowed.', self::STATUS_UNPROCESSABLE_ENTITY);
         }
 
         $model->status = $newStatus;
         if (!$model->save()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
         }
 
-        return [
-            'success' => true,
-            'message' => 'Status updated successfully.',
-        ];
+        return $this->success(null, 'Status updated successfully.');
     }
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa đơn hàng này.';
+            return $this->error($error, self::STATUS_BAD_REQUEST);
         }
-        return [
-            'success' => true,
-            'message' => 'Order deleted successfully.',
-        ];
+        return $this->success(null, 'Order deleted successfully.');
     }
 
     protected function findModel($id)

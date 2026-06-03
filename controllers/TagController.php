@@ -23,34 +23,36 @@ class TagController extends ApiController
     {
         $model = new TagForm();
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            return $this->success($this->findModel($model->id), 'Tag created successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
-        if ($model->load($this->request->post(), '') && $model->save()) {
-            return $this->findModel($model->id);
+        $model->load($this->request->post(), '');
+
+        if ($model->save()) {
+            return $this->success($this->findModel($model->id), 'Tag updated successfully');
         }
 
-        $this->response->statusCode = 422;
-        return $model->getErrors();
+        return $this->error('Validation failed', self::STATUS_UNPROCESSABLE_ENTITY, $model);
     }
 
     public function actionDelete($id)
     {
         $model = $this->findModel($id);
         if (!$model->softDelete()) {
-            $this->response->statusCode = 422;
-            return $model->getErrors();
+            $error = $model->getFirstError('is_deleted') ?: 'Không thể xóa thẻ này.';
+            return $this->error($error, self::STATUS_BAD_REQUEST);
         }
-        return null;
+        return $this->success(null, 'Deleted successfully');
     }
 
     protected function findModel($id)

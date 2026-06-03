@@ -58,15 +58,6 @@ class Product extends BaseProduct
                     ];
                 }, $model->media);
             },
-            'posts' => function ($model) {
-                return array_map(function ($post) {
-                    return [
-                        'id' => $post->id,
-                        'title' => $post->title,
-                        'published_at' => $post->published_at
-                    ];
-                }, $model->posts);
-            }
         ];
     }
 
