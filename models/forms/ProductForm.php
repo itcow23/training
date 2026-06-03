@@ -28,6 +28,14 @@ class ProductForm extends Product
             [['status'], 'in', 'range' => [0, 1]],
             [['price'], 'number', 'min' => 0],
             [['discount'], 'number', 'min' => 0, 'max' => 100],
+            [
+                ['category_id'],
+                'exist',
+                'skipOnError' => true,
+                'targetClass' => \app\models\Category::class,
+                'targetAttribute' => ['category_id' => 'id'],
+                'filter' => fn($query) => $query->notDeleted(),
+            ],
             [['slug'], 'unique', 'filter' => function ($query) {
                 if (!$this->isNewRecord) {
                     $query->andWhere(['not', ['id' => $this->id]]);

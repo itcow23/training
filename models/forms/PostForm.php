@@ -40,6 +40,14 @@ class PostForm extends Post
         return array_merge(parent::rules(), [
             [['status'], 'default', 'value' => self::STATUS_DRAFT],
             [['status'], 'in', 'range' => [self::STATUS_DRAFT, self::STATUS_PUBLISHED, self::STATUS_HIDDEN, self::STATUS_ARCHIVED]],
+            [
+                ['category_id'],
+                'exist',
+                'skipOnError' => true,
+                'targetClass' => \app\models\PostCategory::class,
+                'targetAttribute' => ['category_id' => 'id'],
+                'filter' => fn($query) => $query->notDeleted(),
+            ],
             [['slug'], 'unique', 'filter' => function ($query) {
                 if (!$this->isNewRecord) {
                     $query->andWhere(['not', ['id' => $this->id]]);
