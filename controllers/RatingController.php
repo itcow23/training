@@ -8,6 +8,11 @@ use yii\web\NotFoundHttpException;
 
 class RatingController extends ApiController
 {
+    protected function optionAuthActions()
+    {
+        return ['index', 'view'];
+    }
+
     public function actionIndex()
     {
         return ['message' => 'Index rating'];

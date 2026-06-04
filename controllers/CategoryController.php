@@ -31,7 +31,6 @@ class CategoryController extends ApiController
 
     public function actionView($id)
     {
-        $this->requirePermission(self::PERMISSION_VIEW);
         return $this->findModel($id);
     }
 

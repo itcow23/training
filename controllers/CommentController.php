@@ -16,11 +16,6 @@ class CommentController extends ApiController
     protected const PERMISSION_DELETE = 'comment.delete';
     protected const PERMISSION_UPDATE_OWN = 'comment.update_own';
 
-    protected function optionAuthActions()
-    {
-        return ['index'];
-    }
-
     public function actionIndex()
     {
         return [

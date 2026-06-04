@@ -17,12 +17,6 @@ class OrderController extends ApiController
     protected const PERMISSION_DELETE = 'order.delete';
     protected const PERMISSION_UPDATE_STATUS = 'order.update_status';
 
-
-    protected function optionAuthActions()
-    {
-        return ['create'];
-    }
-
     public function actionIndex()
     {
         $this->requirePermission(self::PERMISSION_VIEW);

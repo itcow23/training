@@ -22,57 +22,18 @@ class ApiController extends Controller
         'collectionEnvelope' => 'items',
     ];
 
-
-    protected function optionAuthActions()
-    {
-        return [];
-    }
-
     public function beforeAction($action)
     {
-        $accountId = Yii::$app->request->get('account_id');
-        $optionsAuthActions = $this->optionAuthActions();
-
-        if(in_array($action->id, $optionsAuthActions)) {
-            if($accountId){
-                $account = Account::findIdentity($accountId);
-                if($account){
-                    Yii::$app->user->login($account);
-                }
-            }
-            return parent::beforeAction($action);
-        }
-
-        if (!$accountId) {
-
+        if (Yii::$app->user->isGuest) {
             Yii::$app->response->statusCode = 401;
             Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
             Yii::$app->response->data = [
                 'success' => false,
-                'message' => 'account_id is required',
+                'message' => 'You must be logged in to perform this action.',
             ];
-
             Yii::$app->response->send();
-
             return false;
         }
-
-        $account = Account::findIdentity($accountId);
-        if (!$account) {
-            Yii::$app->response->statusCode = 401;
-            Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-            Yii::$app->response->data = [
-                'success' => false,
-                'message' => 'Invalid account_id',
-            ];
-
-            Yii::$app->response->send();
-
-            return false;
-        }
-
-        Yii::$app->user->login($account);
-
         return parent::beforeAction($action);
     }
 

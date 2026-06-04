@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\models\base\BaseAccount;
+use Yii;
 
 class Account extends BaseAccount implements \yii\web\IdentityInterface
 {
@@ -23,7 +24,7 @@ class Account extends BaseAccount implements \yii\web\IdentityInterface
 
     public function getAuthKey()
     {
-        return null;
+        return md5($this->password . $this->email);
     }
 
     public function validateAuthKey($authKey)
@@ -31,6 +32,24 @@ class Account extends BaseAccount implements \yii\web\IdentityInterface
         return $this->getAuthKey() === $authKey;
     }
 
+    public function getUsername()
+    {
+        return $this->name;
+    }
+
+    public function validatePassword($password)
+    {
+        if(md5($password) === $this->password)
+        {
+            return true;
+        }
+
+        try {
+            return Yii::$app->security->validatePassword($password, $this->password);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 
     /**
      * Gets query for [[Carts]].
